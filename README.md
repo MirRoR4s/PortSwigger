@@ -7,6 +7,18 @@
 这是我参看PortSwigger的[web安全文章](https://portswigger.net/web-security/learning-path)的汇总。
 >PortSwigger这个并非针对零基础的人，似乎假设你具有一定的计算机基础，如熟悉基本的SQL语言、知晓基本的WEB工作原理。
 
+
+Web Security Academy
+Learning path
+Here's how to get the most out of the Web Security Academy
+If you're new to web security, it can be difficult to know where to begin. That's why we've created this suggested learning path to point you in the right direction. We recommend completing the labs as you go, but don't be afraid to move on to the next topic if you get stuck. You can go back to the more challenging labs once you've developed your skills further.
+
+When you've started to build up your web security testing skills, you could put them to the test with our Burp Suite Certified Practitioner accreditation. Before you are ready to attempt the Burp Suite Certified Practitioner exam, you should be comfortably able to complete all of the labs within the Web Security Academy labeled "Practitioner" or lower. There is no set time frame for completing the labs, but you must be able to do so without requiring access to the solutions provided.
+
+# Server-side topics
+
+For complete beginners, we recommend starting with our server-side topics. These vulnerabilities are typically easier to learn because you only need to understand what's happening on the server. Our materials and labs will help you develop some of the core knowledge and skills that you will rely on time after time.
+
 ## 一. SQL injection
 
 ### 1.1 SQL injection
@@ -52,3 +64,34 @@
 这里给出了几个预防SQL注入的建议，不过最骚的是为burp做了一波宣传，告诉我们如何使用burp的漏洞扫描器发现SQL注入漏洞。
 
 - [原文地址](https://portswigger.net/burp/vulnerability-scanner)
+
+## 二. Authentication vulnerabilities
+
+### 2.1 Authentication vulnerabilities
+
+- [原文地址](https://portswigger.net/web-security/authentication)
+- [英文md](https://hackmd.io/iM6k1WwpTgGvkj7ZrvxyZQ?view)
+
+
+### 2.2 Vulnerabilities in password-based login
+
+- [原文地址](https://portswigger.net/web-security/authentication/password-based)
+- [英文md](https://hackmd.io/LG7NGqN4Ssa_d2BJKqddnA?view)
+
+2.2 目前只完成了基于密码的身份验证。
+
+
+## 三. Directory traversal
+
+
+### 3.1 Directory traversal
+
+目录遍历是任意文件读取吗？(●'◡'●)
+
+- [原文地址](https://portswigger.net/web-security/file-path-traversal)
+- [英文md](https://hackmd.io/IzZYFP-9QuuoNBaC3Nu2rQ?both)
+
+
+
+
+
