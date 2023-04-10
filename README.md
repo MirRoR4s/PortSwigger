@@ -91,7 +91,26 @@ For complete beginners, we recommend starting with our server-side topics. These
 - [原文地址](https://portswigger.net/web-security/file-path-traversal)
 - [英文md](https://hackmd.io/IzZYFP-9QuuoNBaC3Nu2rQ?both)
 
+## 四. OS command injection
 
+### 4.1 OS command injection
+
+
+学完之后可以掌握如何进行命令注入，包括有回显的命令注入和无回显的命令盲注。
+
+通过带外注入我们可以成功破除命名盲注的限制拿到执行命令的结果。
+
+
+
+- [原文地址](https://portswigger.net/web-security/os-command-injection)
+- [英文md](https://hackmd.io/6Dv1pEd9Tga4IrFkAdTCew)
+
+## 五. Business logic vulnerabilities
+
+第五篇讲述业务逻辑漏洞，值得一看。
+### 5.1 Business logic vulnerabilities
+- 
+- [英文md](https://hackmd.io/rf7Agd9yRAuR1VWdMXoGhg)
 
 
 
