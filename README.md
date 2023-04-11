@@ -78,8 +78,19 @@ For complete beginners, we recommend starting with our server-side topics. These
 - [原文地址](https://portswigger.net/web-security/authentication/password-based)
 - [英文md](https://hackmd.io/LG7NGqN4Ssa_d2BJKqddnA?view)
 
-2.2 目前只完成了基于密码的身份验证。
+<!-- 2.2 目前只完成了基于密码的身份验证。 -->
 
+### 2.3 Vulnerabilities in multi-factor authentication
+
+>难度较高，需要一定的耐心。
+
+- [原文地址](https://portswigger.net/web-security/authentication/multi-factor)
+- [英文md](https://hackmd.io/W3qhAWCSSx6l5lhJGDuRaQ?view)
+
+### 2.4 Vulnerabilities in other authentication mechanisms
+
+- [原文地址](https://portswigger.net/web-security/authentication/other-mechanisms)
+- [英文md](https://hackmd.io/PiuQaEO8QYOcFkdMsL9xng)
 
 ## 三. Directory traversal
 
@@ -108,9 +119,30 @@ For complete beginners, we recommend starting with our server-side topics. These
 ## 五. Business logic vulnerabilities
 
 第五篇讲述业务逻辑漏洞，值得一看。
+
 ### 5.1 Business logic vulnerabilities
-- 
+- [原文地址](https://portswigger.net/web-security/logic-flaws)
 - [英文md](https://hackmd.io/rf7Agd9yRAuR1VWdMXoGhg)
+
+
+### 5.2 Examples
+
+- [原文地址](https://portswigger.net/web-security/logic-flaws/examples)
+- [英文md](https://hackmd.io/AMXU9EAURwabi-9Vbw0d2A?both)
+
+
+## 六. Information disclosure vulnerabilities
+
+### 6.1 Information disclosure vulnerabilities
+
+- [原文地址](https://portswigger.net/web-security/information-disclosure)
+- [英文md](https://hackmd.io/WGRxJMaKSuKJGZ7yzfmKYA?both)
+
+### 6.2 How to find and exploit information disclosure vulnerabilities
+
+- [原文地址](https://portswigger.net/web-security/information-disclosure/exploiting)
+- 英文md
+
 
 
 
