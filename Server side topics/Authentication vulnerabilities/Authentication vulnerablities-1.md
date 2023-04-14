@@ -21,11 +21,13 @@ Authentication is the process of verifying the identity of a given user or clien
 
 There are three authentication factors into which different types of authentication can be categorized（可以将不同类型的身份验证分为三个身份验证因素：）:
 
-- Something you **know**, such as a password or the answer to a security question. These are sometimes referred to as "knowledge factors".
+> 关于介词+which语法结构，可参看[此处](https://zhuanlan.zhihu.com/p/481795945)。
+
+- Something you **know**, such as a password or the answer to a security question. These are sometimes referred to as "**knowledge factors**（知识因素）".
 - Something you **have**, that is, a physical object like a mobile phone or security token. These are sometimes referred to as "**possession**（占有） factors".
 - Something you **are** or do, for example, your biometrics or patterns of behavior. These are sometimes referred to as "**inherence**（固有） factors".
 
-Authentication mechanisms rely on a range of technologies to verify one or more of these factors.
+Authentication mechanisms rely on **a range of**（一系列） technologies to verify one or more of these factors.
 
 ### What is the difference between authentication and authorization?
 
@@ -40,7 +42,7 @@ Once `Carlos123` is authenticated, his permissions determine whether or not he i
 **Broadly speaking**（一般地说）, most vulnerabilities in authentication mechanisms arise in one of two ways:
 
 - The authentication mechanisms are weak because they fail to adequately protect against brute-force attacks.
-- Logic flaws or poor coding in the implementation allow the authentication mechanisms to be bypassed entirely by an attacker. This is sometimes referred to as "broken authentication".
+- Logic flaws or **poor coding**（糟糕的编码） in the implementation allow the authentication mechanisms to be bypassed entirely by an attacker. This is sometimes referred to as "broken authentication（身份验证缺陷？待定，直译为破碎的身份验证）".
 
 In many areas of web development, [logic flaws](https://portswigger.net/web-security/logic-flaws) will simply cause the website to behave unexpectedly, which may or may not be a security issue. However, as authentication is so critical to security, the likelihood that flawed authentication logic exposes the website to security issues is clearly elevated（提高）.
 
@@ -73,4 +75,8 @@ If you love to hack authentication mechanisms, after completing our main authent
 ## Preventing attacks on your own authentication mechanisms
 
 We have demonstrated several ways in which websites can be vulnerable due to how they implement authentication. To reduce the risk of such attacks on your own websites, there are several general principles that you should always try to follow.
+
+#### Read more
+
+[How to secure your authentication mechanisms](https://portswigger.net/web-security/authentication/securing)
 

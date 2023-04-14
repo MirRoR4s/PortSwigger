@@ -14,11 +14,13 @@ In this scenario, the mere fact that they know the secret password is taken as s
 
 This can be achieved in a variety of ways, as we'll explore below.
 
+网站单纯根据密码对用户进行身份认证，所以如果黑客可以获得其他用户的登陆凭证，那么网站的安全性就遭到了破坏。不幸地是，黑客可以通过多种方法获得他人的登录凭证，详情参看下文。
+
 ## Brute-force attacks
 
-A brute-force attack is when an attacker uses a system of trial and error in an attempt to guess valid user credentials. These attacks are typically automated using wordlists of usernames and passwords. Automating this process, especially using dedicated tools, potentially enables an attacker to make vast numbers of login attempts at high speed.
+A brute-force attack is when an attacker uses a system of **trial and error**（反复试验） in an **（login）attempt**（此处意指登录尝试） to guess valid user credentials. These attacks are typically automated using wordlists of usernames and passwords. Automating this process, especially using **dedicated**（专用的） tools, potentially enables an attacker to make vast numbers of login attempts at high speed.
 
-Brute-forcing is not always just a case of making completely random guesses at usernames and passwords. By also using basic logic or publicly available knowledge, attackers can fine-tune brute-force attacks to make much more educated guesses. This considerably increases the efficiency of such attacks. Websites that rely on password-based login as their sole method of authenticating users can be highly vulnerable if they do not implement sufficient brute-force protection.
+Brute-forcing is not always just a case of making completely random guesses at usernames and passwords.（有点长，可总结为暴力破解并不总是完全随机猜测用户名和密码。） By also using basic logic or publicly available knowledge, attackers can **fine-tune**（调整） brute-force attacks to make much more **educated guesses**（有根据的猜测）. This **considerably** （大幅度地）increases the efficiency of such attacks. Websites that rely on password-based login as their sole method of authenticating users can be highly vulnerable if they do not implement sufficient brute-force protection.
 
 ### Brute-forcing usernames
 
