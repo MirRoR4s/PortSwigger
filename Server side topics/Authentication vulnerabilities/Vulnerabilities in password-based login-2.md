@@ -52,21 +52,31 @@ Username enumeration is when an attacker is able to observe changes in the websi
 
 Username enumeration typically occurs either on the login page, for example, when you enter a valid username but an incorrect password, or on registration forms when you enter a username that is already taken. This greatly reduces the time and effort required to brute-force a login because the attacker is able to quickly generate a shortlist of valid usernames.
 
+> 用户名枚举漏洞一般出现在什么地方呢？文中说道主要是在登录页面或是注册页面。
+
 While attempting to brute-force a login page, you should pay particular attention to any differences in:
 
 - **Status codes**: During a brute-force attack, the returned HTTP status code is likely to be the same for the vast majority of guesses because most of them will be wrong. If a guess returns a different status code, this is a strong indication that the username was correct. It is best practice for websites to always return the same status code regardless of the outcome, but this practice is not always followed.
-- **Error messages**: Sometimes the returned error message is different depending on whether both the username AND password are incorrect or only the password was incorrect. It is best practice for websites to use identical, generic messages in both cases, but small typing errors sometimes creep in. Just one character out of place makes the two messages distinct, even in cases where the character is not visible on the rendered page.
-- **Response times**: If most of the requests were handled with a similar response time, any that deviate from this suggest that something different was happening behind the scenes. This is another indication that the guessed username might be correct. For example, a website might only check whether the password is correct if the username is valid. This extra step might cause a slight increase in the response time. This may be subtle, but an attacker can make this delay more obvious by entering an excessively long password that the website takes noticeably longer to handle.
+- **Error messages**: Sometimes the returned error message is different depending on whether both the username AND password are incorrect or only the password was incorrect. It is best practice for websites to use identical, generic messages in both cases, but small typing errors sometimes **creep in**（发生）. Just one character **out of place** （错位）makes the two messages distinct, even in cases where the character is not visible on the rendered page.
+- **Response times**: If most of the requests were handled with a similar response time, any that **deviate**（违背） from this suggest that something different was happening behind the scenes. This is another indication that the guessed username might be correct. For example, a website might only check whether the password is correct if the username is valid. This extra step might cause a slight increase in the response time. This may be subtle, but an attacker can make this delay more obvious by entering an excessively long password that the website takes noticeably longer to handle.
 
-##### **LAB**
+##### **实验-通过不同响应枚举用户名**
 
 [Username enumeration via different responses](https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-different-responses)
 
-##### **LAB**
+该实验存在一个用户名枚举漏洞以及对于密码的暴力攻击漏洞。实验要求我们先枚举出合法的用户名，然后再对密码进行暴力破解。
+
+如何判定枚举的用户名是否有效？根据实验名的暗示，此处应是查看HTTP响应。HTTP响应的话可以查看状态码、响应时间、响应的长度。下面阐述解题思路：
+
+1. 
+
+
+
+##### **实验-通过不同响应间的轻微差异枚举用户名**
 
 [Username enumeration via subtly different responses](https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-subtly-different-responses)
 
-##### **LAB**
+##### **实验-通过响应时间枚举用户名**
 
 [Username enumeration via response timing](https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-response-timing)
 
