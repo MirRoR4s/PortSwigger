@@ -24,23 +24,27 @@ Brute-forcing is not always just a case of making completely random guesses at u
 
 ### Brute-forcing usernames
 
-Usernames are especially easy to guess if they conform to a recognizable pattern, such as an email address. For example, it is very common to see business logins in the format `firstname.lastname@somecompany.com`. However, even if there is no obvious pattern, sometimes even high-privileged accounts are created using predictable usernames, such as `admin` or `administrator`.
+Usernames are especially easy to guess if they **conform**（符合） to a recognizable pattern, such as an email address. For example, it is very common to see business logins in the format `firstname.lastname@somecompany.com`. However, even if there is no obvious pattern, sometimes even high-privileged accounts are created using predictable usernames, such as `admin` or `administrator`.
 
 During auditing, check whether the website discloses potential usernames publicly. For example, are you able to access user profiles without logging in? Even if the actual content of the profiles is hidden, the name used in the profile is sometimes the same as the login username. You should also check HTTP responses to see if any email addresses are disclosed. Occasionally, responses contain emails addresses of high-privileged users like administrators and IT support.
 
 ### Brute-forcing passwords
 
-Passwords can similarly be brute-forced, with the difficulty varying based on the strength of the password. Many websites adopt some form of password policy, which forces users to create high-entropy passwords that are, theoretically at least, harder to crack using brute-force alone. This typically involves enforcing passwords with:
+Passwords can similarly be brute-forced, with the difficulty varying based on the strength of the password. Many websites adopt some form of password policy, which forces users to create **high-entropy**（直译为高熵，我对熵的定义不甚了解。似乎是熵越高，所含的信息量越大。） passwords that are, theoretically at least, harder to crack using brute-force alone. This typically involves **enforcing**（直译是实施、强制执行，此处意指网站开发者强制用户执行他们的密码策略） passwords with:
 
 - A minimum number of characters
 - A mixture of lower and uppercase letters
 - At least one special character
 
-However, while high-entropy passwords are difficult for computers alone to crack, we can use a basic knowledge of human behavior to exploit the vulnerabilities that users unwittingly introduce to this system. Rather than creating a strong password with a random combination of characters, users often take a password that they can remember and try to crowbar it into fitting the password policy. For example, if `mypassword` is not allowed, users may try something like `Mypassword1!` or `Myp4$$w0rd` instead.
+However, while high-entropy passwords are difficult for computers alone to crack, we can use a basic knowledge of human behavior to exploit the vulnerabilities that users **unwittingly**（直译无意地，此处指利用人类行为的基础信息对用户无意中引入系统的漏洞进行利用。） introduce to this system. Rather than creating a strong password with a random combination of characters, users often take a password that they can remember and try to **crowbar**（直译为撬棍，此处意指用户会采用一个他们能够记住的密码并以此为基础修改这个密码直至其满足网站的密码策略。） it into fitting the password policy. For example, if `mypassword` is not allowed, users may try something like `Mypassword1!` or `Myp4$$w0rd` instead.
 
 In cases where the policy requires users to change their passwords on a regular basis, it is also common for users to just make minor, predictable changes to their preferred password. For example, `Mypassword1!` becomes `Mypassword1?` or `Mypassword2!.`
 
 This knowledge of likely credentials and predictable patterns means that brute-force attacks can often be much more sophisticated, and therefore effective, than simply iterating through every possible combination of characters.
+
+> 从上文可以得到什么启示呢？
+>
+> 文中告诉我们暴力攻击并不仅仅是简单的爆破所有可能的字符组合，而是可以通过一些可能的认证信息或是可预测的模式来有针对性地进行暴力攻击。
 
 ### Username enumeration
 
@@ -54,15 +58,15 @@ While attempting to brute-force a login page, you should pay particular attentio
 - **Error messages**: Sometimes the returned error message is different depending on whether both the username AND password are incorrect or only the password was incorrect. It is best practice for websites to use identical, generic messages in both cases, but small typing errors sometimes creep in. Just one character out of place makes the two messages distinct, even in cases where the character is not visible on the rendered page.
 - **Response times**: If most of the requests were handled with a similar response time, any that deviate from this suggest that something different was happening behind the scenes. This is another indication that the guessed username might be correct. For example, a website might only check whether the password is correct if the username is valid. This extra step might cause a slight increase in the response time. This may be subtle, but an attacker can make this delay more obvious by entering an excessively long password that the website takes noticeably longer to handle.
 
-**LAB**
+##### **LAB**
 
 [Username enumeration via different responses](https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-different-responses)
 
-**LAB**
+##### **LAB**
 
 [Username enumeration via subtly different responses](https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-subtly-different-responses)
 
-**LAB**
+##### **LAB**
 
 [Username enumeration via response timing](https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-response-timing)
 
@@ -79,7 +83,7 @@ For example, you might sometimes find that your IP is blocked if you fail to log
 
 In this case, merely including your own login credentials at regular intervals throughout the wordlist is enough to render this defense virtually useless.
 
-**LAB**
+##### **LAB**
 
 [Broken brute-force protection, IP block](https://portswigger.net/web-security/authentication/password-based/lab-broken-bruteforce-protection-ip-block)
 
@@ -87,7 +91,7 @@ In this case, merely including your own login credentials at regular intervals t
 
 One way in which websites try to prevent brute-forcing is to lock the account if certain suspicious criteria are met, usually a set number of failed login attempts. Just as with normal login errors, responses from the server indicating that an account is locked can also help an attacker to enumerate usernames.
 
-**LAB**
+##### **LAB**
 
 [Username enumeration via account lock](https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-account-lock)
 
@@ -113,7 +117,7 @@ User rate limiting is sometimes preferred to account locking due to being less p
 
 As the limit is based on the rate of HTTP requests sent from the user's IP address, it is sometimes also possible to bypass this defense if you can work out how to guess multiple passwords with a single request.
 
-**LAB**
+##### **LAB**
 
 [Broken brute-force protection, multiple credentials per request](https://portswigger.net/web-security/authentication/password-based/lab-broken-brute-force-protection-multiple-credentials-per-request)
 
