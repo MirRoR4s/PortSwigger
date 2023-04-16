@@ -100,7 +100,7 @@ For complete beginners, we recommend starting with our server-side topics. These
 目录遍历是任意文件读取吗？(●'◡'●)
 
 - [原文地址](https://portswigger.net/web-security/file-path-traversal)
-- [英文md](https://hackmd.io/IzZYFP-9QuuoNBaC3Nu2rQ?both)
+- [英文md](./Server%20side%20topics/Directory%20traversal/README.md)
 
 ## 四. OS command injection
 
