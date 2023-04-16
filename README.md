@@ -24,14 +24,14 @@ For complete beginners, we recommend starting with our server-side topics. These
 ### 1.1 SQL injection
 
 - [原文地址](https://portswigger.net/web-security/sql-injection)
-- [英文md](https://hackmd.io/Mw5mGNGGRvWP7nSZ4jNRMw)
+- [英文md](./Server side topics/SQL injection/SQL injection/README.md)
 
 
 
 
 ### 1.2 SQL injection UNION attacks
 
-- [英文md](https://hackmd.io/gjbPhtHDRsOpAs50vIYZlQ)
+- [英文md](./Server side topics/SQL injection/SQL injection UNION attacks/README.md)
 
 ### 1.3 Examining the database in SQL injection attacks
 
@@ -42,14 +42,14 @@ For complete beginners, we recommend starting with our server-side topics. These
 
 
 - [原文地址](https://portswigger.net/web-security/sql-injection/examining-the-database)
-- [英文md](https://hackmd.io/pryDQAgsTYWhJqGqBP1KjA)
+- [英文md](./Server side topics/SQL injection/Examining the database in SQL injection attacks/README.md)
 
 ### 1.4 Blind SQL injection vulnerabilities
 
 盲注的最后描述了针对盲注的带外攻击，主要适用于应用的响应和SQL注入执行时间无关、SQL执行报错无关、SQL查询是否返回任意数据无关的情况。
 
 - [原文地址](https://portswigger.net/web-security/sql-injection/blind)
-- [英文md](https://hackmd.io/DepKya4FTQaVohIb68is7g)
+- [英文md](./Server side topics/SQL injection/Blind SQL injection vulnerabilities/README.md)
 
 
 ### 1.5 Database-specific factors
@@ -57,7 +57,7 @@ For complete beginners, we recommend starting with our server-side topics. These
 这里给出了一个针对各种类型的数据库的一个注入语句备忘录，建议时常翻阅。
 
 - [原文地址](https://portswigger.net/web-security/sql-injection/cheat-sheet)
-- [英文md](https://hackmd.io/84ChTyieTiq8ffDcZfFHZA)
+- [英文md](./Server side topics/SQL injection/Database-specific factors/README.md)
 
 ### 1.6 How to prevent SQL injection
 
@@ -142,7 +142,6 @@ For complete beginners, we recommend starting with our server-side topics. These
 
 - [原文地址](https://portswigger.net/web-security/information-disclosure/exploiting)
 - 英文md
-
 
 
 
