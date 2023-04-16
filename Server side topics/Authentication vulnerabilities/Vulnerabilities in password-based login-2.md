@@ -68,13 +68,18 @@ While attempting to brute-force a login page, you should pay particular attentio
 
 如何判定枚举的用户名是否有效？根据实验名的暗示，此处应是查看HTTP响应。HTTP响应的话可以查看状态码、响应时间、响应的长度。下面阐述解题思路：
 
-1. 
-
-
+1. burp抓包
+2. 送入Intruder模块，给username添加\$，使用实验给的用户名列表发起攻击
+3. 根据响应长度、状态码等排序
+4. 发现可疑的响应长度，查看后发现极有可能是有效的用户名
+5. 根据上一步的用户名使用密码列表进行爆破
+6. 爆破成功，登录账户完成实验。
 
 ##### **实验-通过不同响应间的轻微差异枚举用户名**
 
 [Username enumeration via subtly different responses](https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-subtly-different-responses)
+
+
 
 ##### **实验-通过响应时间枚举用户名**
 
@@ -135,7 +140,7 @@ As the limit is based on the rate of HTTP requests sent from the user's IP addre
 
 Although fairly old, its relative simplicity and ease of implementation means you might sometimes see HTTP basic authentication being used. In HTTP basic authentication, the client receives an authentication token from the server, which is constructed by concatenating the username and password, and encoding it in Base64. This token is stored and managed by the browser, which automatically adds it to the `Authorization` header of every subsequent request as follows:
 
-```
+```http
 Authorization: Basic base64(username:password)
 ```
 
