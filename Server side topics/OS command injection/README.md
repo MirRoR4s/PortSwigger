@@ -1,6 +1,6 @@
 ###### tags: `PortSwigger`
 
-[TOC]
+
 
 # OS command injection
 
@@ -29,7 +29,7 @@ Consider a shopping application that lets the user view whether an item is in st
 https://insecure-website.com/stockStatus?productID=381&storeID=29
 ```
 
-To provide the stock information, the application must query various legacy systems. For historical reasons, the functionality is implemented by calling out to a shell command with the product and store IDs as arguments:
+To provide the stock information, the application must query various **legacy**（（软件或硬件）已过时但因使用范围广而难以替代的） systems. For historical reasons, the functionality is implemented by calling out to a shell command with the product and store IDs as arguments:
 
 ```
 stockreport.pl 381 29
@@ -186,7 +186,7 @@ On Unix-based systems, you can also use backticks or the dollar character to per
 injected command\`
 - `$(`injected command `)`
 
-Note that the different shell metacharacters have subtly different behaviors that might affect whether they work in certain situations, and whether they allow in-band retrieval of command output or are useful only for blind exploitation.
+Note that the different shell metacharacters have subtly different behaviors that might affect whether they work in certain situations, and whether they allow **in-band retrieval**（带内检索） of command output or are useful only for blind exploitation.
 
 Sometimes, the input that you control appears within quotation marks in the original command. In this situation, you need to terminate the quoted context (using `"` or `'`) before using suitable shell metacharacters to inject a new command.
 
