@@ -2,9 +2,16 @@
 [TOC]
 # PortSwigger
 
+[TOC]
+
+
+
 ## 前言
 
 这是我参看PortSwigger的[web安全文章](https://portswigger.net/web-security/learning-path)的汇总。
+
+我的时间不多了，以后可能只能更新WP了....
+
 >PortSwigger这个并非针对零基础的人，似乎假设你具有一定的计算机基础，如熟悉基本的SQL语言、知晓基本的WEB工作原理。
 
 
@@ -114,7 +121,7 @@ For complete beginners, we recommend starting with our server-side topics. These
 
 
 - [原文地址](https://portswigger.net/web-security/os-command-injection)
-- [英文md](https://hackmd.io/6Dv1pEd9Tga4IrFkAdTCew)
+- [英文md](./Server%20side%20topics/OS%20command%20injection/README.md)
 
 ## 五. Business logic vulnerabilities
 
@@ -122,7 +129,7 @@ For complete beginners, we recommend starting with our server-side topics. These
 
 ### 5.1 Business logic vulnerabilities
 - [原文地址](https://portswigger.net/web-security/logic-flaws)
-- [英文md](https://hackmd.io/rf7Agd9yRAuR1VWdMXoGhg)
+- [英文md](./Server%20side%20topics/Business%20logic%20vulnerabilities/README.md)
 
 
 ### 5.2 Examples
@@ -141,7 +148,7 @@ For complete beginners, we recommend starting with our server-side topics. These
 ### 6.2 How to find and exploit information disclosure vulnerabilities
 
 - [原文地址](https://portswigger.net/web-security/information-disclosure/exploiting)
-- 英文md
+- [英文md](./Server%20side%20topics/Information%20disclosure%20vulnerabilities/How%20to%20find%20and%20exploit%20information%20disclosure%20vulnerabilities/README.md)
 
 
 
