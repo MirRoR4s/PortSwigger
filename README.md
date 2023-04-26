@@ -2,10 +2,6 @@
 [TOC]
 # PortSwigger
 
-[TOC]
-
-
-
 ## 前言
 
 这是我参看PortSwigger的[web安全文章](https://portswigger.net/web-security/learning-path)的汇总。
@@ -13,7 +9,6 @@
 我的时间不多了，以后可能只能更新WP了....
 
 >PortSwigger这个并非针对零基础的人，似乎假设你具有一定的计算机基础，如熟悉基本的SQL语言、知晓基本的WEB工作原理。
-
 
 Web Security Academy
 Learning path
@@ -152,3 +147,6 @@ For complete beginners, we recommend starting with our server-side topics. These
 
 
 
+## 八. File upload vulnerabilities
+
+- [英文md](./Server%20side%20topics/File%20upload%20vulnerabilities/README.md)

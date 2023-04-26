@@ -4,19 +4,19 @@ In this section, you'll learn how simple file upload functions can be used as a 
 
 ![image-20230420224303388](image-20230420224303388.png)
 
-#### Labs
+**Labs**
 
 If you're already familiar with the basic concepts behind file upload vulnerabilities and just want to get practicing, you can access all of the labs in this topic from the link below.
 
 [View all file upload labs](https://portswigger.net/web-security/all-labs#file-upload-vulnerabilities)
 
-## What are file upload vulnerabilities?
+## 一. What are file upload vulnerabilities?
 
 File upload vulnerabilities are when a web server allows users to upload files to its filesystem without sufficiently validating things like their name, type, contents, or size. Failing to properly enforce restrictions on these could mean that even a basic image upload function can be used to upload arbitrary and potentially dangerous files instead. This could even include server-side script files that enable remote code execution.
 
 In some cases, the act of uploading the file is in itself enough to cause damage. Other attacks may involve a **follow-up** HTTP request for the file, typically to trigger its execution by the server.
 
-## What is the impact of file upload vulnerabilities?
+## 二. What is the impact of file upload vulnerabilities?
 
 The impact of file upload vulnerabilities generally depends on two key factors:
 
@@ -29,23 +29,27 @@ If the filename isn't validated properly, this could allow an attacker to overwr
 
 Failing to make sure that the size of the file falls within expected **thresholds** could also enable a form of denial-of-service (DoS) attack, whereby the attacker fills the available disk space.
 
-## How do file upload vulnerabilities arise?
+## 三. How do file upload vulnerabilities arise?
 
 Given the fairly obvious dangers, it's rare for websites in the wild to have no restrictions whatsoever on which files users are allowed to upload. More commonly, developers implement what they believe to be robust validation that is either inherently flawed or can be easily bypassed.
 
-For example, they may attempt to blacklist dangerous file types, but fail to account for parsing discrepancies when checking the file extensions. As with any blacklist, it's also easy to accidentally omit more **obscure** file types that may still be dangerous.
+For example, they may attempt to **blacklist**（把...列入黑名单） dangerous file types, but fail to **account for**（考虑） parsing **discrepancies**（差异） when checking the file extensions. As with any blacklist, it's also easy to accidentally omit more **obscure**（鲜为人知的） file types that may still be dangerous.
 
 In other cases, the website may attempt to check the file type by verifying properties that can be easily manipulated by an attacker using tools like Burp Proxy or Repeater.
 
-Ultimately, even robust validation measures may be applied inconsistently across the network of hosts and directories that form the website, resulting in discrepancies that can be exploited.
+**Ultimately**（最后）, even robust validation measures may be applied **inconsistently**（不一致地） across the network of hosts and directories that form the website, resulting in discrepancies that can be exploited.
+
+> 以上是一个长难句，慢慢分析。
+>
+> 这里旨在说明组成网站的主机和目录可能采用了不同的验证措施，我们可以利用这些措施之间的差异做某些事情。
 
 Later in this topic, we'll teach you how to [exploit a number of these flaws](https://portswigger.net/web-security/file-upload#exploiting-flawed-validation-of-file-uploads) to upload a web shell for remote code execution. We've even created some interactive, deliberately vulnerable labs so that you can practice what you've learned against some realistic targets.
 
-## How do web servers handle requests for static files?
+## 四. How do web servers handle requests for static files?
 
 Before we look at how to exploit file upload vulnerabilities, it's important that you have a basic understanding of how servers handle requests for static files.
 
-Historically, websites consisted almost entirely of static files that would be served to users when requested. As a result, the path of each request could be mapped 1:1 with the hierarchy of directories and files on the server's filesystem. Nowadays, websites are increasingly dynamic and the path of a request often has no direct relationship to the filesystem at all. **Nevertheless**（然而）, web servers still deal with requests for some static files, including stylesheets, images, and so on.
+Historically, websites consisted almost entirely of static files that would be served to users when requested. **As a result**（因此）, the path of each request could be mapped 1:1 with the hierarchy of directories and files on the server's filesystem. Nowadays, websites are increasingly dynamic and the path of a request often has no direct relationship to the filesystem at all. **Nevertheless**（然而）, web servers still deal with requests for some static files, including stylesheets, images, and so on.
 
 The process for handling these static files is still largely the same. At some point, the server parses the path in the request to identify the file extension. It then uses this to determine the type of the file being requested, typically by comparing it to a list of preconfigured mappings between extensions and MIME types. What happens next depends on the file type and the server's configuration.
 
@@ -53,17 +57,19 @@ The process for handling these static files is still largely the same. At some p
 - If the file type is executable, such as a PHP file, **and** the server is configured to execute files of this type, it will assign variables based on the headers and parameters in the HTTP request before running the script. The resulting output may then be sent to the client in an HTTP response.
 - If the file type is executable, but the server **is not** configured to execute files of this type, it will generally respond with an error. However, in some cases, the contents of the file may still be served to the client as plain text. Such misconfigurations can occasionally be exploited to leak source code and other sensitive information. You can see an [example](https://portswigger.net/web-security/information-disclosure/exploiting#source-code-disclosure-via-backup-files) of this in our [information disclosure](https://portswigger.net/web-security/information-disclosure) learning materials.
 
-#### Tip
+> Tip
+>
+> The `Content-Type` response header may provide clues as to what kind of file the server thinks it has served. If this header hasn't been explicitly set by the application code, it normally contains the result of the file extension/MIME type mapping.
+>
+> Now that you're familiar with the key concepts, let's look at how you can potentially exploit these kinds of vulnerabilities.
 
-The `Content-Type` response header may provide clues as to what kind of file the server thinks it has served. If this header hasn't been explicitly set by the application code, it normally contains the result of the file extension/MIME type mapping.
 
-Now that you're familiar with the key concepts, let's look at how you can potentially exploit these kinds of vulnerabilities.
 
-## Exploiting unrestricted file uploads to deploy a web shell
+## 五. Exploiting unrestricted file uploads to deploy a web shell
 
 From a security perspective, the worst possible scenario is when a website allows you to upload server-side scripts, such as PHP, Java, or Python files, and is also configured to execute them as code. This makes it trivial to create your own web shell on the server.
 
-### Web shell
+### 5.1 Web shell
 
 A web shell is a malicious script that enables an attacker to execute arbitrary commands on a remote web server simply by sending HTTP requests to the right endpoint.
 
@@ -81,7 +87,7 @@ Once uploaded, sending a request for this malicious file will return the target 
 
 [Remote code execution via web shell upload](https://portswigger.net/web-security/file-upload/lab-file-upload-remote-code-execution-via-web-shell-upload)
 
-A more versatile web shell may look something like this:
+A more **versatile**（通用的） web shell may look something like this:
 
 ```php
 <?php echo system($_GET['command']); ?>
@@ -93,20 +99,40 @@ This script enables you to pass an arbitrary system command via a query paramete
 GET /example/exploit.php?command=id HTTP/1.1
 ```
 
-## Exploiting flawed validation of file uploads
+## 六. Exploiting flawed validation of file uploads
 
 In the wild, it's unlikely that you'll find a website that has no protection whatsoever against file upload attacks like we saw in the previous lab. But just because defenses are in place, that doesn't mean that they're robust.
 
 In this section, we'll look at some ways that web servers attempt to validate and sanitize file uploads, as well as how you can exploit flaws in these mechanisms to obtain a web shell for remote code execution.
 
-### Flawed file type validation
+### 6.1 Flawed file type validation
 
 When submitting HTML forms, the browser typically sends the provided data in a `POST` request with the content type `application/x-www-form-url-encoded`. This is fine for sending simple text like your name, address, and so on, but is not suitable for sending large amounts of binary data, such as an entire image file or a PDF document. In this case, the content type `multipart/form-data` is the preferred approach.
 
 Consider a form containing fields for uploading an image, providing a description of it, and entering your username. Submitting such a form might result in a request that looks something like this:
 
-```
-POST /images HTTP/1.1 Host: normal-website.com Content-Length: 12345 Content-Type: multipart/form-data; boundary=---------------------------012345678901234567890123456 ---------------------------012345678901234567890123456 Content-Disposition: form-data; name="image"; filename="example.jpg" Content-Type: image/jpeg [...binary content of example.jpg...] ---------------------------012345678901234567890123456 Content-Disposition: form-data; name="description" This is an interesting description of my image. ---------------------------012345678901234567890123456 Content-Disposition: form-data; name="username" wiener ---------------------------012345678901234567890123456--
+```http
+POST /images HTTP/1.1
+Host: normal-website.com
+Content-Length: 12345
+Content-Type: multipart/form-data; boundary=---------------------------012345678901234567890123456
+
+---------------------------012345678901234567890123456
+Content-Disposition: form-data; name="image"; filename="example.jpg"
+Content-Type: image/jpeg
+
+[...binary content of example.jpg...]
+
+---------------------------012345678901234567890123456
+Content-Disposition: form-data; name="description"
+
+This is an interesting description of my image.
+
+---------------------------012345678901234567890123456
+Content-Disposition: form-data; name="username"
+
+wiener
+---------------------------012345678901234567890123456--
 ```
 
 As you can see, the message body is split into separate parts for each of the form's inputs. Each part contains a `Content-Disposition` header, which provides some basic information about the input field it relates to. These individual parts may also contain their own `Content-Type` header, which tells the server the MIME type of the data that was submitted using this input.
@@ -115,79 +141,125 @@ One way that websites may attempt to validate file uploads is to check that this
 
 **LAB**
 
-**APPRENTICE**[Web shell upload via Content-Type restriction bypass](https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-content-type-restriction-bypass)
+**APPRENTICE**
 
-Not solved
+[Web shell upload via Content-Type restriction bypass](https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-content-type-restriction-bypass)
 
-### Preventing file execution in user-accessible directories
+> 这个文件的路径按照如下的手法就可以看到啦
+
+![image-20230426190506087](image-20230426190506087.png)
+
+### 6.2 Preventing file execution in user-accessible directories
 
 While it's clearly better to prevent dangerous file types being uploaded in the first place, the second line of defense is to stop the server from executing any scripts that do slip through the net.
 
 As a precaution, servers generally only run scripts whose MIME type they have been explicitly configured to execute. Otherwise, they may just return some kind of error message or, in some cases, serve the contents of the file as plain text instead:
 
-```
-GET /static/exploit.php?command=id HTTP/1.1 Host: normal-website.com  HTTP/1.1 200 OK Content-Type: text/plain Content-Length: 39 <?php echo system($_GET['command']); ?>
+```http
+GET /static/exploit.php?command=id 
+Host: normal-website.com
+
+HTTP/1.1 200 OK 
+Content-Type: text/plain 
+Content-Length: 39 
+<?php echo system($_GET['command']); ?>
 ```
 
 This behavior is potentially interesting in its own right, as it may provide a way to leak source code, but it nullifies any attempt to create a web shell.
 
 This kind of configuration often differs between directories. A directory to which user-supplied files are uploaded will likely have much stricter controls than other locations on the filesystem that are assumed to be out of reach for end users. If you can find a way to upload a script to a different directory that's not supposed to contain user-supplied files, the server may execute your script after all.
 
-#### Tip
+**Tip**
 
 Web servers often use the `filename` field in `multipart/form-data` requests to determine the name and location where the file should be saved.
 
 **LAB**
 
-**PRACTITIONER**[Web shell upload via path traversal](https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-path-traversal)
+**PRACTITIONER**
 
-Not solved
+[Web shell upload via path traversal](https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-path-traversal)
+
+**solved**
+
+> 有点坑的实验，原本是希望我们上传到上一级目录去的，但是直接用../上传无效，需要部分编码成../%2f
+>
+> 最后直接访问 /avator/test.php 即可
 
 You should also note that even though you may send all of your requests to the same domain name, this often points to a reverse proxy server of some kind, such as a load balancer. Your requests will often be handled by additional servers behind the scenes, which may also be configured differently.
 
-### Insufficient blacklisting of dangerous file types
+![image-20230426192651111](image-20230426192651111.png)
+
+### 6.3 Insufficient blacklisting of dangerous file types
+
+> 采用黑名单防御手法，常常会在黑名单中忽略一些冷门的危险文件类型，黑客可通过这些文件类型绕过黑名单上传 WebShell
 
 One of the more obvious ways of preventing users from uploading malicious scripts is to blacklist potentially dangerous file extensions like `.php`. The practice of blacklisting is inherently flawed as it's difficult to explicitly block every possible file extension that could be used to execute code. Such blacklists can sometimes be bypassed by using lesser known, alternative file extensions that may still be executable, such as `.php5`, `.shtml`, and so on.
 
-#### Overriding the server configuration
+#### 6.3.1 Overriding the server configuration-实验
 
-As we discussed in the previous section, servers typically won't execute files unless they have been configured to do so. For example, before an Apache server will execute PHP files requested by a client, developers might have to add the following directives to their `/etc/apache2/apache2.conf` file:
+> 覆写服务端配置
 
+As we discussed in the previous section, servers typically won't execute files unless they have been configured to do so. For example, before an Apache server will execute PHP files requested by a client, developers might have to add the following **directives**（指令） to their `/etc/apache2/apache2.conf` file:
+
+```http
+LoadModule php_module /usr/lib/apache2/modules/libphp.so 
+AddType application/x-httpd-php .php
 ```
-LoadModule php_module /usr/lib/apache2/modules/libphp.so AddType application/x-httpd-php .php
-```
 
-Many servers also allow developers to create special configuration files within individual directories in order to override or add to one or more of the global settings. Apache servers, for example, will load a directory-specific configuration from a file called `.htaccess` if one is present.
+Many servers also allow developers to create special configuration files within individual directories in order to override or add to one or more of the global settings. for example,Apache servers will load a directory-specific configuration from a file called `.htaccess` if one is present.
 
 Similarly, developers can make directory-specific configuration on IIS servers using a `web.config` file. This might include directives such as the following, which in this case allows JSON files to be served to users:
 
-```
-<staticContent>    <mimeMap fileExtension=".json" mimeType="application/json" /> </staticContent>
+```http
+<staticContent>    
+<mimeMap fileExtension=".json" mimeType="application/json" /> 
+</staticContent>
 ```
 
 Web servers use these kinds of configuration files when present, but you're not normally allowed to access them using HTTP requests. However, you may occasionally find servers that fail to stop you from uploading your own malicious configuration file. In this case, even if the file extension you need is blacklisted, you may be able to trick the server into mapping an arbitrary, custom file extension to an executable MIME type.
 
 **LAB**
 
-**PRACTITIONER**[Web shell upload via extension blacklist bypass](https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-extension-blacklist-bypass)
+**PRACTITIONER**
+
+[Web shell upload via extension blacklist bypass](https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-extension-blacklist-bypass)
 
 Not solved
 
-#### Obfuscating file extensions
+> 需要上传两个不同的文件来解决此实验。
+>
+> 思路如下：
+>
+> 1. 上传 .htaccess 恶意配置文件，将 jpg 后缀解析成 php。
+> 2. 上传 jpg 图片，解析为 php 文件执行。
+>
+> 为什么会出现漏洞？
+>
+> 主要在于服务器允许我们上传可以更改特定目录配置的配置文件，通过这个配置文件，我们可以令服务器将任意格式的文件以 PHP 的形式解析。
+>
+> 如何预防？
+>
+> 当然是加上针对上传配置文件的过滤！！！
 
-Even the most exhaustive blacklists can potentially be bypassed using classic obfuscation techniques. Let's say the validation code is case sensitive and fails to recognize that `exploit.pHp` is in fact a `.php` file. If the code that subsequently maps the file extension to a MIME type is **not** case sensitive, this discrepancy allows you to sneak malicious PHP files past validation that may eventually be executed by the server.
+#### 6.3.2 Obfuscating file extensions-实验
+
+> 混淆文件扩展名
+>
+> 使用一些经典的混淆技术可能帮助我们绕过一些很详尽的黑名单！
+
+Even the most **exhaustive**（详尽的） blacklists can potentially be bypassed using classic obfuscation techniques. Let's say the validation code is **case sensitive**（大小写敏感的） and fails to recognize that `exploit.pHp` is in fact a `.php` file. If the code that **subsequently**（随后） maps the file extension to a MIME type is **not** case sensitive, this **discrepancy**（差异） allows you to sneak malicious PHP files past validation that may eventually be executed by the server.
 
 You can also achieve similar results using the following techniques:
 
 - Provide multiple extensions. Depending on the algorithm used to parse the filename, the following file may be interpreted as either a PHP file or JPG image: `exploit.php.jpg`
-- Add trailing characters. Some components will strip or ignore trailing whitespaces, dots, and suchlike: `exploit.php.`
+- Add **trailing**（拖尾的） characters. Some components will strip or ignore trailing whitespaces, dots, and suchlike: `exploit.php.`
 - Try using the URL encoding (or double URL encoding) for dots, forward slashes, and backward slashes. If the value isn't decoded when validating the file extension, but is later decoded server-side, this can also allow you to upload malicious files that would otherwise be blocked: `exploit%2Ephp`
-- Add semicolons or URL-encoded null byte characters before the file extension. If validation is written in a high-level language like PHP or Java, but the server processes the file using lower-level functions in C/C++, for example, this can cause discrepancies in what is treated as the end of the filename: `exploit.asp;.jpg` or `exploit.asp%00.jpg`
-- Try using multibyte unicode characters, which may be converted to null bytes and dots after unicode conversion or normalization. Sequences like `xC0 x2E`, `xC4 xAE` or `xC0 xAE` may be translated to `x2E` if the filename parsed as a UTF-8 string, but then converted to ASCII characters before being used in a path.
+- Add **semicolons**（分号） or URL-encoded null byte characters before the file extension. If validation is written in a high-level language like PHP or Java, but the server processes the file using lower-level functions in C/C++, for example, this can cause discrepancies in what is treated as the end of the filename: `exploit.asp;.jpg` or `exploit.asp%00.jpg`
+- Try using **multibyte**（多字节的） unicode characters, which may be converted to null bytes and dots after unicode conversion or normalization. Sequences like `xC0 x2E`, `xC4 xAE` or `xC0 xAE` may be translated to `x2E` if the filename parsed as a UTF-8 string, but then converted to ASCII characters before being used in a path.
 
 Other defenses involve stripping or replacing dangerous extensions to prevent the file from being executed. If this transformation isn't applied recursively, you can position the prohibited string in such a way that removing it still leaves behind a valid file extension. For example, consider what happens if you strip `.php` from the following filename:
 
-```
+```http
 exploit.p.phphp
 ```
 
@@ -195,11 +267,23 @@ This is just a small selection of the many ways it's possible to obfuscate file 
 
 **LAB**
 
-**PRACTITIONER**[Web shell upload via obfuscated file extension](https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-obfuscated-file-extension)
+**PRACTITIONER**
 
-Not solved
+[Web shell upload via obfuscated file extension](https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-obfuscated-file-extension)
 
-### Flawed validation of the file's contents
+**solved**
+
+> 这个实验应该采用的是白名单的机制，不过还是可以利用混淆技术来绕过。
+>
+> 只要在上传的 PHP 文件名后面添加上 %00.jpg 即可成功绕过
+>
+> 为什么会产生漏洞？
+>
+> 主要是负责验证的代码和处理文件的代码之间的差异引起的。比如负责验证的代码是用高级语言写的，而处理文件的代码是用相对低级一些的语言写的，那么两者在文件名何时结束就会产生差异，我们正是利用了该差异成功地上传了 WebShell
+>
+> 
+
+### 6.4 Flawed validation of the file's contents-实验-待定
 
 Instead of implicitly trusting the `Content-Type` specified in a request, more secure servers try to verify that the contents of the file actually match what is expected.
 
@@ -215,7 +299,7 @@ This is a much more robust way of validating the file type, but even this isn't 
 
 Not solved
 
-### Exploiting file upload race conditions
+### 6.5 Exploiting file upload race conditions
 
 Modern frameworks are more battle-hardened against these kinds of attacks. They generally don't upload files directly to their intended destination on the filesystem. Instead, they take precautions like uploading to a temporary, sandboxed directory first and randomizing the name to avoid overwriting existing files. They then perform validation on this temporary file and only transfer it to its destination once it is deemed safe to do so.
 
@@ -227,11 +311,13 @@ These vulnerabilities are often extremely subtle, making them difficult to detec
 
 **LAB**
 
-**EXPERT**[Web shell upload via race condition](https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-race-condition)
+**EXPERT**
+
+[Web shell upload via race condition](https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-race-condition)
 
 Not solved
 
-#### Race conditions in URL-based file uploads
+#### 6.5.1 Race conditions in URL-based file uploads
 
 Similar race conditions can occur in functions that allow you to upload a file by providing a URL. In this case, the server has to fetch the file over the internet and create a local copy before it can perform any validation.
 
@@ -241,21 +327,21 @@ For example, if the file is loaded into a temporary directory with a randomized 
 
 To make attacks like this easier, you can try to extend the amount of time taken to process the file, thereby lengthening the window for brute-forcing the directory name. One way of doing this is by uploading a larger file. If it is processed in chunks, you can potentially take advantage of this by creating a malicious file with the payload at the start, followed by a large number of arbitrary padding bytes.
 
-## Exploiting file upload vulnerabilities without remote code execution
+## 七. Exploiting file upload vulnerabilities without remote code execution
 
 In the examples we've looked at so far, we've been able to upload server-side scripts for remote code execution. This is the most serious consequence of an insecure file upload function, but these vulnerabilities can still be exploited in other ways.
 
-### Uploading malicious client-side scripts
+### 7.1 Uploading malicious client-side scripts
 
 Although you might not be able to execute scripts on the server, you may still be able to upload scripts for client-side attacks. For example, if you can upload HTML files or SVG images, you can potentially use `<script>` tags to create [stored XSS](https://portswigger.net/web-security/cross-site-scripting/stored) payloads.
 
 If the uploaded file then appears on a page that is visited by other users, their browser will execute the script when it tries to render the page. Note that due to [same-origin policy](https://portswigger.net/web-security/cors/same-origin-policy) restrictions, these kinds of attacks will only work if the uploaded file is served from the same origin to which you upload it.
 
-### Exploiting vulnerabilities in the parsing of uploaded files
+### 7.2 Exploiting vulnerabilities in the parsing of uploaded files
 
 If the uploaded file seems to be both stored and served securely, the last resort is to try exploiting vulnerabilities specific to the parsing or processing of different file formats. For example, you know that the server parses XML-based files, such as Microsoft Office `.doc` or `.xls` files, this may be a potential vector for [XXE injection](https://portswigger.net/web-security/xxe) attacks.
 
-## Uploading files using PUT
+## 八. Uploading files using PUT
 
 It's worth noting that some web servers may be configured to support `PUT` requests. If appropriate defenses aren't in place, this can provide an alternative means of uploading malicious files, even when an upload function isn't available via the web interface.
 
@@ -267,7 +353,7 @@ PUT /images/exploit.php HTTP/1.1 Host: vulnerable-website.com Content-Type: appl
 
 You can try sending `OPTIONS` requests to different endpoints to test for any that advertise support for the `PUT` method.
 
-## How to prevent file upload vulnerabilities
+## 九. How to prevent file upload vulnerabilities
 
 Allowing users to upload files is commonplace and doesn't have to be dangerous as long as you take the right precautions. In general, the most effective way to protect your own websites from these vulnerabilities is to implement all of the following practices:
 
