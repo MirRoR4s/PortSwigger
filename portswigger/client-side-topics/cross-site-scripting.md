@@ -40,7 +40,7 @@ When the malicious code executes inside a victim's browser, the attacker can ful
 
 当返回的恶意代码在用户的浏览器内执行的时，攻击者就能够完全地破坏用户和应用程序间的交互。
 
-![](<../../../.gitbook/assets/image (2).png>)
+![](<../../.gitbook/assets/image (2).png>)
 
 **Labs**
 
@@ -188,6 +188,14 @@ The actual impact of an XSS attack generally depends on the nature of the applic
 * In an application holding sensitive data, such as banking transactions, emails, or healthcare records, the impact will usually be serious.
 * If the compromised user has elevated privileges within the application, then the impact will generally be critical, allowing the attacker to take full control of the vulnerable application and compromise all users and their data.
 
+XSS 攻击的影响通常取决于应用程序的特点、功能、所含数据以及受到入侵用户的状态，例如：
+
+* 在一个宣传册式网页应用中，所有的用户都是匿名的，并且所有的信息都是公开的，此时XSS攻击的影响就微乎其微。
+* 在一个含有敏感数据的应用程序中，比如银行业务、邮箱以及健康记录等应用，XSS攻击的影响通常比较严重。
+* 如果受入侵的用户在应用程序内具有较高的权限等级，那么XSS攻击的影响可能会十分严重，因为这允许攻击者完全控制整个应用程序并可以破坏所有用户和他们的数据。
+
+
+
 **Read more**
 
 * [Exploiting cross-site scripting vulnerabilities](https://portswigger.net/web-security/cross-site-scripting/exploiting)
@@ -198,9 +206,13 @@ The actual impact of an XSS attack generally depends on the nature of the applic
 
 Manually testing for reflected and stored XSS normally involves submitting some simple unique input (such as a short alphanumeric string) into every entry point in the application, identifying every location where the submitted input is returned in HTTP responses, and testing each location individually to determine whether suitably crafted input can be used to execute arbitrary JavaScript.&#x20;
 
+大部分的XSS漏洞都可以通过Burp的web漏洞扫描器快速可靠地探查到。而手工地测试反射型和存储型XSS漏洞一般涉及到将一些独特的输入提交到应用程序的每个入口点，并在随后的HTTP响应中寻找所提交输入的每个回显位置，最后分别测试每个位置以此确定此处是否可以执行任意的JavaScript代码。
+
 
 
 In this way, you can determine the [context](https://portswigger.net/web-security/cross-site-scripting/contexts) in which the XSS occurs and select a suitable payload to exploit it.
+
+
 
 
 
@@ -210,9 +222,13 @@ Manually testing for DOM-based XSS arising from URL parameters involves a simila
 
 However, other types of DOM XSS are harder to detect. To find [DOM-based vulnerabilities](https://portswigger.net/web-security/dom-based) in non-URL-based input (such as `document.cookie`) or non-HTML-based sinks (like `setTimeout`), there is no substitute for reviewing JavaScript code, which can be extremely time-consuming.&#x20;
 
+然而，我们难以检测其他类型的DOM 型 XSS。为寻找不在URL输入中的DOM型XSS漏洞（比如 `document.cookie）`，我们必须人工审视JavaScript 代码，除此之外别无他法，尽管这是一个非常耗时的过程。
 
 
-Burp Suite's web vulnerability scanner combines static and dynamic analysis of JavaScript to reliably automate the detection of DOM-based vulnerabilities.
+
+~~Burp Suite's web vulnerability scanner combines static and dynamic analysis of JavaScript to reliably automate the detection of DOM-based vulnerabilities.~~
+
+~~Burp Suite 的 web漏洞扫描器结合~~了针对JavaScript的动静态分析，所以能够帮助我们可靠地实现DOM型XSS漏洞的自动检测。
 
 **Read more**
 
