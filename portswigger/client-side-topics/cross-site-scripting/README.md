@@ -6,31 +6,41 @@ description: https://portswigger.net/web-security/cross-site-scripting
 
 In this section, we'll explain what cross-site scripting is, describe the different **varieties** of cross-site scripting vulnerabilities, and **spell out（讲清楚）** how to find and prevent cross-site scripting.
 
+本小节我们将阐述跨站脚本攻击（cross-site scripting) 是什么，并描述不同类型的跨站脚本漏洞以及如何发现和预防这些漏洞。
+
 ### What is cross-site scripting (XSS)? <a href="#what-is-cross-site-scripting-xss" id="what-is-cross-site-scripting-xss"></a>
 
-Cross-site scripting (also known as XSS) is a web security vulnerability that allows an attacker to compromise the interactions that users have with a vulnerable application.&#x20;
+Cross-site scripting (also known as XSS) is a web security vulnerability that allows an attacker to compromise the interactions that users have with a vulnerable application. It allows an attacker to circumvent the same origin policy, which is designed to segregate different websites from each other.
+
+跨站脚本也被称为 XSS，是一种 web 安全漏洞。XSS 允许攻击者破坏用户与存在漏洞的应用程序间的交互，并使得他们可以绕过同源策略。（该策略意在使不同的网站彼此分离）
 
 
-
-It allows an attacker to circumvent the same origin policy, which is designed to segregate different websites from each other.
 
 
 
 &#x20;Cross-site scripting vulnerabilities normally allow an attacker to **masquerade（伪装）** as a victim user, to carry out any actions that the user is able to perform, and to access any of the user's data.&#x20;
 
+跨站脚本漏洞通常允许攻击者伪装成受害者，这样他们就可以执行用户能够进行的任意操作并访问用户的任意数据。
+
 
 
 If the victim user has privileged access within the application, then the attacker might be able to gain full control over all of the application's functionality and data.
 
+如果受害者在应用程序内具有较高的权限等级，那么攻击者也许就能够完全控制整个应用程序的功能和数据。
+
 ### How does XSS work? <a href="#how-does-xss-work" id="how-does-xss-work"></a>
 
-Cross-site scripting works by manipulating a vulnerable web site so that it returns malicious JavaScript to users.&#x20;
+Cross-site scripting works by manipulating a vulnerable web site so that it returns malicious JavaScript to users.
+
+跨站脚本背后的工作原理是什么呢？简单来说，跨站脚本会操纵存在漏洞的网站并使其返回恶意的 JavaScript 代码给用户。
 
 
 
 When the malicious code executes inside a victim's browser, the attacker can fully compromise their interaction with the application.
 
-![](<../../.gitbook/assets/image (2).png>)
+当返回的恶意代码在用户的浏览器内执行的时，攻击者就能够完全地破坏用户和应用程序间的交互。
+
+![](<../../../.gitbook/assets/image (2).png>)
 
 **Labs**
 
@@ -40,27 +50,19 @@ If you're already familiar with the basic concepts behind XSS vulnerabilities an
 
 ### XSS proof of concept <a href="#xss-proof-of-concept" id="xss-proof-of-concept"></a>
 
-You can confirm most kinds of XSS vulnerability by injecting a payload that causes your own browser to execute some arbitrary JavaScript.&#x20;
+You can confirm most kinds of XSS vulnerability by injecting a payload that causes your own browser to execute some arbitrary JavaScript. It's long been common practice to use the `alert()` function for this purpose because it's short, harmless, and pretty hard to miss when it's successfully called.&#x20;
 
-
-
-It's long been common practice to use the `alert()` function for this purpose because it's short, harmless, and pretty hard to miss when it's successfully called.&#x20;
+如何验证我们的 XSS PoC 呢？简单来说，可以将 XSS payload 注入到我们自己的浏览器中去执行一些 JavaScript 代码来验证大部分的 XSS 漏洞。常见的做法是执行 `alert()` 函数，因为该函数简洁、无害并且调用结果也很明显。
 
 
 
 In fact, you solve the majority of our XSS labs by invoking `alert()` in a simulated（模拟的） victim's browser.
 
-Unfortunately, there's a slight **hitch（小问题）** if you use Chrome. From version 92 onward (July 20th, 2021), cross-origin **iframes** are prevented from calling `alert()`.&#x20;
 
 
+Unfortunately, there's a slight **hitch（小问题）** if you use Chrome. From version 92 onward (July 20th, 2021), cross-origin **iframes** are prevented from calling `alert()`.  As these are used to construct some of the more advanced XSS attacks, you'll sometimes need to use an alternative PoC payload. In this scenario, we recommend the `print()` function.&#x20;
 
-As these are used to construct some of the more advanced XSS attacks, you'll sometimes need to use an alternative PoC payload.&#x20;
-
-
-
-In this scenario, we recommend the `print()` function.&#x20;
-
-
+然而，若我们使用谷歌浏览器的话，那么这种做法就可能会有一些小问题。因为从谷歌浏览器的 92 版本之后，跨源的 iframe 标签无法调用 alert() 函数。在这种情况下，我们可以使用 `print()` 函数。
 
 If you're interested in learning more about this change and why we like `print()`, [check out our blog post](https://portswigger.net/research/alert-is-dead-long-live-print) on the subject.
 
@@ -80,34 +82,46 @@ There are three main types of XSS attacks. These are:
 * [Stored XSS](https://portswigger.net/web-security/cross-site-scripting#stored-cross-site-scripting), where the malicious script comes from the website's database.
 * [DOM-based XSS](https://portswigger.net/web-security/cross-site-scripting#dom-based-cross-site-scripting), where the vulnerability exists in client-side code rather than server-side code.
 
+XSS 攻击主要分为三类，分别是：
+
+* 反射型 XSS，恶意脚本来自于当前的 HTTP 请求。
+* 存储型 XSS，恶意脚本来自于网站的数据库。
+* 基于 DOM 的 XSS，漏洞存在于客户端而非服务端。
+
 ### [Reflected cross-site scripting](https://portswigger.net/web-security/cross-site-scripting/reflected) <a href="#reflected-cross-site-scripting" id="reflected-cross-site-scripting"></a>
 
-[Reflected XSS](https://portswigger.net/web-security/cross-site-scripting/reflected) is the simplest variety of cross-site scripting.&#x20;
+[Reflected XSS](https://portswigger.net/web-security/cross-site-scripting/reflected) is the simplest variety of cross-site scripting. It arises when an application receives data in an HTTP request and includes that data within the immediate response in an unsafe way.
 
-
-
-It arises when an application receives data in an HTTP request and includes that data within the immediate response in an unsafe way.
+反射型 XSS 是最简单的跨站脚本，当应用程序从 HTTP 请求中接收数据并以一种不安全的方式将数据包含在随后的响应中时就会产生反射型 XSS 漏洞。
 
 
 
 Here is a simple example of a [reflected XSS](https://portswigger.net/web-security/cross-site-scripting/reflected) vulnerability:
 
-```
+以下是一个反射型 XSS 漏洞的简单例子：
+
+{% code overflow="wrap" lineNumbers="true" %}
+```bash
 https://insecure-website.com/status?message=All+is+well. <p>Status: All is well.</p>
 ```
+{% endcode %}
 
 The application doesn't perform any other processing of the data, so an attacker can easily construct an attack like this:
 
+应用程序接收到数据后没有再对数据进行其他操作，所以攻击者可以轻松地构造一个像下面这样的攻击：
+
+{% code overflow="wrap" %}
 ```
 https://insecure-website.com/status?message=<script>/*+Bad+stuff+here...+*/</script>
 <p>Status: <script>/* Bad stuff here... */</script></p>
 ```
+{% endcode %}
 
-If the user visits the URL constructed by the attacker, then the attacker's script executes in the user's browser, in the context of that user's session with the application.&#x20;
+If the user visits the URL constructed by the attacker, then the attacker's script executes in the user's browser, in the context of that user's session with the application. At that point, the script can carry out any action, and retrieve any data, to which the user has access.
+
+如果用户访问了由攻击者所构造的 URL，那么攻击者的脚本就会在用户的浏览器内执行，更具体地说是在用户会话和应用程序的上下文内。此时，脚本就可以执行任意操作并访问用户有权访问的任意数据。
 
 
-
-At that point, the script can carry out any action, and retrieve any data, to which the user has access.
 
 **Read more**
 
