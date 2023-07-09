@@ -4,37 +4,51 @@ description: https://portswigger.net/web-security/cross-site-scripting/stored
 
 # Stored XSS
 
+## Stored XSS
+
 In this section, we'll explain stored cross-site scripting, describe the impact of stored XSS attacks, and spell out how to find stored XSS vulnerabilities.
 
-### What is stored cross-site scripting? <a href="#what-is-stored-cross-site-scripting" id="what-is-stored-cross-site-scripting"></a>
+### What is stored cross-site scripting?
 
 Stored cross-site scripting (also known as second-order or persistent XSS) arises when an application receives data from an untrusted source and includes that data within its later HTTP responses in an unsafe way.
 
 Suppose a website allows users to submit comments on blog posts, which are displayed to other users. Users submit comments using an HTTP request like the following:
 
-`POST /post/comment HTTP/1.1 Host: vulnerable-website.com Content-Length: 100 postId=3&comment=This+post+was+extremely+helpful.&name=Carlos+Montoya&email=carlos%40normal-user.net`
+```
+POST /post/comment HTTP/1.1 Host: vulnerable-website.com Content-Length: 100 postId=3&comment=This+post+was+extremely+helpful.&name=Carlos+Montoya&email=carlos%40normal-user.net
+```
 
 After this comment has been submitted, any user who visits the blog post will receive the following within the application's response:
 
-`<p>This post was extremely helpful.</p>`
+​
+
+This post was extremely helpful.
+
+​
 
 Assuming the application doesn't perform any other processing of the data, an attacker can submit a malicious comment like this:
 
-`<script>/* Bad stuff here... */</script>`
+\<script>/\* Bad stuff here... \*/\</script>
 
 Within the attacker's request, this comment would be URL-encoded as:
 
-`comment=%3Cscript%3E%2F*%2BBad%2Bstuff%2Bhere...%2B*%2F%3C%2Fscript%3E`
+```
+comment=%3Cscript%3E%2F*%2BBad%2Bstuff%2Bhere...%2B*%2F%3C%2Fscript%3E
+```
 
 Any user who visits the blog post will now receive the following within the application's response:
 
-`<p><script>/* Bad stuff here... */</script></p>`
+​​
 
 The script supplied by the attacker will then execute in the victim user's browser, in the context of their session with the application.
 
-LABAPPRENTICE[Stored XSS into HTML context with nothing encoded](https://portswigger.net/web-security/cross-site-scripting/stored/lab-html-context-nothing-encoded)Not solved
+**LAB**
 
-### Impact of stored XSS attacks <a href="#impact-of-stored-xss-attacks" id="impact-of-stored-xss-attacks"></a>
+APPRENTICE[Stored XSS into HTML context with nothing encoded](https://portswigger.net/web-security/cross-site-scripting/stored/lab-html-context-nothing-encoded)
+
+Not solved
+
+### Impact of stored XSS attacks
 
 If an attacker can control a script that is executed in the victim's browser, then they can typically fully compromise that user. The attacker can carry out any of the actions that are applicable to the impact of [reflected XSS vulnerabilities](https://portswigger.net/web-security/cross-site-scripting/reflected).
 
@@ -46,7 +60,7 @@ The self-contained nature of stored cross-site scripting exploits is particularl
 
 * [Exploiting cross-site scripting vulnerabilities](https://portswigger.net/web-security/cross-site-scripting/exploiting)
 
-### Stored XSS in different contexts <a href="#stored-xss-in-different-contexts" id="stored-xss-in-different-contexts"></a>
+### Stored XSS in different contexts
 
 There are many different varieties of stored cross-site scripting. The location of the stored data within the application's response determines what type of payload is required to exploit it and might also affect the impact of the vulnerability.
 
@@ -56,7 +70,7 @@ In addition, if the application performs any validation or other processing on t
 
 * [Cross-site scripting contexts](https://portswigger.net/web-security/cross-site-scripting/contexts)
 
-### How to find and test for stored XSS vulnerabilities <a href="#how-to-find-and-test-for-stored-xss-vulnerabilities" id="how-to-find-and-test-for-stored-xss-vulnerabilities"></a>
+### How to find and test for stored XSS vulnerabilities
 
 Many stored XSS vulnerabilities can be found using Burp Suite's [web vulnerability scanner](https://portswigger.net/burp/vulnerability-scanner).
 
