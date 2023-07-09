@@ -6,7 +6,7 @@ description: https://portswigger.net/web-security/cross-site-scripting
 
 In this section, we'll explain what cross-site scripting is, describe the different **varieties** of cross-site scripting vulnerabilities, and **spell out（讲清楚）** how to find and prevent cross-site scripting.
 
-本小节我们将阐述跨站脚本攻击（cross-site scripting) 是什么，并描述不同类型的跨站脚本漏洞以及如何发现和预防这些漏洞。
+本小节我们将阐述跨站脚本攻击（cross-site scripting) 的定义，并描述不同类型的跨站脚本漏洞以及如何发现和预防这些漏洞。
 
 ### What is cross-site scripting (XSS)? <a href="#what-is-cross-site-scripting-xss" id="what-is-cross-site-scripting-xss"></a>
 
@@ -26,7 +26,7 @@ Cross-site scripting (also known as XSS) is a web security vulnerability that al
 
 If the victim user has privileged access within the application, then the attacker might be able to gain full control over all of the application's functionality and data.
 
-如果受害者在应用程序内具有较高的权限等级，那么攻击者也许就能够完全控制整个应用程序的功能和数据。
+如果受害者在应用程序内具有较高的权限等级，那么攻击者也许就能够控制整个应用程序的功能和数据。
 
 ### How does XSS work? <a href="#how-does-xss-work" id="how-does-xss-work"></a>
 
@@ -38,7 +38,7 @@ Cross-site scripting works by manipulating a vulnerable web site so that it retu
 
 When the malicious code executes inside a victim's browser, the attacker can fully compromise their interaction with the application.
 
-当返回的恶意代码在用户的浏览器内执行的时，攻击者就能够完全地破坏用户和应用程序间的交互。
+当返回的恶意代码在用户的浏览器内执行时，攻击者就能够破坏用户和应用程序间的交互。
 
 ![](<../../.gitbook/assets/image (2).png>)
 
@@ -52,7 +52,7 @@ If you're already familiar with the basic concepts behind XSS vulnerabilities an
 
 You can confirm most kinds of XSS vulnerability by injecting a payload that causes your own browser to execute some arbitrary JavaScript. It's long been common practice to use the `alert()` function for this purpose because it's short, harmless, and pretty hard to miss when it's successfully called.&#x20;
 
-如何验证我们的 XSS PoC 呢？简单来说，可以将 XSS payload 注入到我们自己的浏览器中去执行一些 JavaScript 代码来验证大部分的 XSS 漏洞。常见的做法是执行 `alert()` 函数，因为该函数简洁、无害并且调用结果也很明显。
+如何验证我们的 XSS PoC 呢？简单来说，可以将 XSS payload 注入到我们自己的浏览器中去执行JavaScript 代码来验证大部分 XSS 漏洞。常见的做法是执行 `alert()` 函数，因为该函数简洁、无害并且调用结果也很明显。
 
 
 
@@ -62,7 +62,7 @@ In fact, you solve the majority of our XSS labs by invoking `alert()` in a simul
 
 Unfortunately, there's a slight **hitch（小问题）** if you use Chrome. From version 92 onward (July 20th, 2021), cross-origin **iframes** are prevented from calling `alert()`.  As these are used to construct some of the more advanced XSS attacks, you'll sometimes need to use an alternative PoC payload. In this scenario, we recommend the `print()` function.&#x20;
 
-然而，若我们使用谷歌浏览器的话，那么这种做法就可能会有一些小问题。因为从谷歌浏览器的 92 版本之后，跨源的 iframe 标签无法调用 alert() 函数。在这种情况下，我们可以使用 `print()` 函数。
+然而，若我们使用谷歌浏览器的话，那么这种做法可能会有一些小问题。因为从谷歌浏览器的 92 版本之后，跨源的 iframe 标签无法调用 alert() 函数，不过在这种情况下，我们可以还使用 `print()` 函数。
 
 If you're interested in learning more about this change and why we like `print()`, [check out our blog post](https://portswigger.net/research/alert-is-dead-long-live-print) on the subject.
 
