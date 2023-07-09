@@ -4,8 +4,6 @@ description: https://portswigger.net/web-security/cross-site-scripting/stored
 
 # Stored XSS
 
-## Stored XSS
-
 In this section, we'll explain stored cross-site scripting, describe the impact of stored XSS attacks, and spell out how to find stored XSS vulnerabilities.
 
 ### What is stored cross-site scripting?
@@ -14,21 +12,23 @@ Stored cross-site scripting (also known as second-order or persistent XSS) arise
 
 Suppose a website allows users to submit comments on blog posts, which are displayed to other users. Users submit comments using an HTTP request like the following:
 
-```
+{% code overflow="wrap" %}
+```html
 POST /post/comment HTTP/1.1 Host: vulnerable-website.com Content-Length: 100 postId=3&comment=This+post+was+extremely+helpful.&name=Carlos+Montoya&email=carlos%40normal-user.net
 ```
+{% endcode %}
 
 After this comment has been submitted, any user who visits the blog post will receive the following within the application's response:
 
-​
-
-This post was extremely helpful.
-
-​
+```
+<p>This post was extremely helpful.</p>
+```
 
 Assuming the application doesn't perform any other processing of the data, an attacker can submit a malicious comment like this:
 
-\<script>/\* Bad stuff here... \*/\</script>
+```
+<script>/* Bad stuff here... */</script>
+```
 
 Within the attacker's request, this comment would be URL-encoded as:
 
@@ -38,23 +38,45 @@ comment=%3Cscript%3E%2F*%2BBad%2Bstuff%2Bhere...%2B*%2F%3C%2Fscript%3E
 
 Any user who visits the blog post will now receive the following within the application's response:
 
-​​
+```
+<script>/* Bad stuff here... */</script>
+```
 
 The script supplied by the attacker will then execute in the victim user's browser, in the context of their session with the application.
 
 **LAB**
 
-APPRENTICE[Stored XSS into HTML context with nothing encoded](https://portswigger.net/web-security/cross-site-scripting/stored/lab-html-context-nothing-encoded)
+APPRENTICE [Stored XSS into HTML context with nothing encoded](https://portswigger.net/web-security/cross-site-scripting/stored/lab-html-context-nothing-encoded)
 
-Not solved
+> 已完成，我的答案链接：[https://app.gitbook.com/s/VlmE7rptpNK28guoEJBE/\~/changes/8/portswigger/client-side-topics/cross-site-scripting/stored-xss/lab-stored-xss-into-html-context-with-nothing-encoded](https://app.gitbook.com/s/VlmE7rptpNK28guoEJBE/\~/changes/8/portswigger/client-side-topics/cross-site-scripting/stored-xss/lab-stored-xss-into-html-context-with-nothing-encoded)
 
 ### Impact of stored XSS attacks
 
-If an attacker can control a script that is executed in the victim's browser, then they can typically fully compromise that user. The attacker can carry out any of the actions that are applicable to the impact of [reflected XSS vulnerabilities](https://portswigger.net/web-security/cross-site-scripting/reflected).
+If an attacker can control a script that is executed in the victim's browser, then they can typically fully compromise that user.&#x20;
 
-In terms of exploitability, the key difference between reflected and stored XSS is that a stored XSS vulnerability enables attacks that are self-contained within the application itself. The attacker does not need to find an external way of inducing other users to make a particular request containing their exploit. Rather, the attacker places their exploit into the application itself and simply waits for users to encounter it.
 
-The self-contained nature of stored cross-site scripting exploits is particularly relevant in situations where an XSS vulnerability only affects users who are currently logged in to the application. If the XSS is reflected, then the attack must be fortuitously timed: a user who is induced to make the attacker's request at a time when they are not logged in will not be compromised. In contrast, if the XSS is stored, then the user is guaranteed to be logged in at the time they encounter the exploit.
+
+The attacker can carry out any of the actions that are applicable to the impact of [reflected XSS vulnerabilities](https://portswigger.net/web-security/cross-site-scripting/reflected).
+
+
+
+In terms of exploitability, the key difference between reflected and stored XSS is that a stored XSS vulnerability enables attacks that are **self-contained（独立的）** within the application itself.&#x20;
+
+
+
+The attacker does not need to find an external way of inducing other users to make a particular request containing their exploit.&#x20;
+
+
+
+Rather, the attacker places their exploit into the application itself and simply waits for users to encounter it.
+
+
+
+The self-contained nature of stored cross-site scripting exploits is particularly **relevant（有价值的）** in situations where an XSS vulnerability only affects users who are currently logged in to the application.&#x20;
+
+
+
+If the XSS is reflected, then the attack must be **fortuitously（偶然地）** timed: a user who is induced to make the attacker's request at a time when they are not logged in will not be compromised. In contrast, if the XSS is stored, then the user is guaranteed to be logged in at the time they encounter the exploit.
 
 **Read more**
 
@@ -64,7 +86,9 @@ The self-contained nature of stored cross-site scripting exploits is particularl
 
 There are many different varieties of stored cross-site scripting. The location of the stored data within the application's response determines what type of payload is required to exploit it and might also affect the impact of the vulnerability.
 
-In addition, if the application performs any validation or other processing on the data before it is stored, or at the point when the stored data is incorporated into responses, this will generally affect what kind of XSS payload is needed.
+
+
+In addition, if the application performs any validation or other processing on the data before it is stored, or at the point when the stored data is **incorporated（包含）** into responses, this will generally affect what kind of XSS payload is needed.
 
 **Read more**
 
