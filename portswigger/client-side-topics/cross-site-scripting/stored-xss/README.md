@@ -10,10 +10,14 @@ In this section, we'll explain stored cross-site scripting, describe the impact 
 
 Stored cross-site scripting (also known as second-order or persistent XSS) arises when an application receives data from an untrusted source and includes that data within its later HTTP responses in an unsafe way.
 
-Suppose a website allows users to submit comments on blog posts, which are displayed to other users. Users submit comments using an HTTP request like the following:
+Suppose a website allows users to submit comments on blog posts, which are displayed to other users.&#x20;
+
+
+
+Users submit comments using an HTTP request like the following:
 
 {% code overflow="wrap" %}
-```html
+```http
 POST /post/comment HTTP/1.1 Host: vulnerable-website.com Content-Length: 100 postId=3&comment=This+post+was+extremely+helpful.&name=Carlos+Montoya&email=carlos%40normal-user.net
 ```
 {% endcode %}
@@ -26,19 +30,19 @@ After this comment has been submitted, any user who visits the blog post will re
 
 Assuming the application doesn't perform any other processing of the data, an attacker can submit a malicious comment like this:
 
-```
+```http
 <script>/* Bad stuff here... */</script>
 ```
 
 Within the attacker's request, this comment would be URL-encoded as:
 
-```
+```http
 comment=%3Cscript%3E%2F*%2BBad%2Bstuff%2Bhere...%2B*%2F%3C%2Fscript%3E
 ```
 
 Any user who visits the blog post will now receive the following within the application's response:
 
-```
+```http
 <script>/* Bad stuff here... */</script>
 ```
 
@@ -98,24 +102,48 @@ In addition, if the application performs any validation or other processing on t
 
 Many stored XSS vulnerabilities can be found using Burp Suite's [web vulnerability scanner](https://portswigger.net/burp/vulnerability-scanner).
 
-Testing for stored XSS vulnerabilities manually can be challenging. You need to test all relevant "entry points" via which attacker-controllable data can enter the application's processing, and all "exit points" at which that data might appear in the application's responses.
+Testing for stored XSS vulnerabilities manually can be challenging.&#x20;
+
+
+
+You need to test all relevant "entry points" via which attacker-controllable data can enter the application's processing, and all "exit points" at which that data might appear in the application's responses.
 
 Entry points into the application's processing include:
 
 * Parameters or other data within the URL query string and message body.
 * The URL file path.
 * HTTP request headers that might not be exploitable in relation to [reflected XSS](https://portswigger.net/web-security/cross-site-scripting/reflected).
-* Any out-of-band routes via which an attacker can deliver data into the application. The routes that exist depend entirely on the functionality implemented by the application: a webmail application will process data received in emails; an application displaying a Twitter feed might process data contained in third-party tweets; and a news aggregator will include data originating on other web sites.
+* **Any out-of-band routes via which an attacker can deliver data into the application.** The routes that exist depend entirely on the functionality implemented by the application: a webmail application will process data received in emails; an application displaying a **Twitter feed** might process data contained in third-party **tweets（推文）**; and a **news aggregator（新闻聚合器）** will include data originating on other web sites.
 
 The exit points for stored XSS attacks are all possible HTTP responses that are returned to any kind of application user in any situation.
 
-The first step in testing for stored XSS vulnerabilities is to locate the links between entry and exit points, whereby data submitted to an entry point is emitted from an exit point. The reasons why this can be challenging are that:
+The first step in testing for stored XSS vulnerabilities is to locate the links between entry and exit points, whereby data submitted to an entry point is **emitted（发出）** from an exit point. The reasons why this can be challenging are that:
 
 * Data submitted to any entry point could in principle be emitted from any exit point. For example, user-supplied display names could appear within an obscure audit log that is only visible to some application users.
 * Data that is currently stored by the application is often vulnerable to being overwritten due to other actions performed within the application. For example, a search function might display a list of recent searches, which are quickly replaced as users perform other searches.
 
-To comprehensively identify links between entry and exit points would involve testing each permutation separately, submitting a specific value into the entry point, navigating directly to the exit point, and determining whether the value appears there. However, this approach is not practical in an application with more than a few pages.
+To comprehensively identify links between entry and exit points would involve testing each permutation separately, submitting a specific value into the entry point, navigating directly to the exit point, and determining whether the value appears there.&#x20;
 
-Instead, a more realistic approach is to work systematically through the data entry points, submitting a specific value into each one, and monitoring the application's responses to detect cases where the submitted value appears. Particular attention can be paid to relevant application functions, such as comments on blog posts. When the submitted value is observed in a response, you need to determine whether the data is indeed being stored across different requests, as opposed to being simply reflected in the immediate response.
 
-When you have identified links between entry and exit points in the application's processing, each link needs to be specifically tested to detect if a stored XSS vulnerability is present. This involves determining the context within the response where the stored data appears and testing suitable candidate XSS payloads that are applicable to that context. At this point, the testing methodology is broadly the same as for finding [reflected XSS vulnerabilities](https://portswigger.net/web-security/cross-site-scripting/reflected).
+
+However, this approach is not practical in an application with more than a few pages.
+
+Instead, a more realistic approach is to work systematically through the data entry points, submitting a specific value into each one, and monitoring the application's responses to detect cases where the submitted value appears.&#x20;
+
+
+
+Particular attention can be paid to relevant application functions, such as comments on blog posts.
+
+
+
+When the submitted value is observed in a response, you need to determine whether the data is indeed being stored across different requests, as opposed to being simply reflected in the immediate response.
+
+When you have identified links between entry and exit points in the application's processing, each link needs to be specifically tested to detect if a stored XSS vulnerability is present.&#x20;
+
+
+
+This involves determining the context within the response where the stored data appears and testing suitable candidate XSS payloads that are applicable to that context.&#x20;
+
+
+
+At this point, the testing methodology is broadly the same as for finding [reflected XSS vulnerabilities](https://portswigger.net/web-security/cross-site-scripting/reflected).
