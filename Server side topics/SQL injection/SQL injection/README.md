@@ -20,6 +20,8 @@ typora-root-url: ..
 
 In this section, we'll explain what SQL injection (SQLi) is, describe some common examples, explain how to find and exploit various kinds of SQL injection vulnerabilities, and summarize how to prevent SQL injection.
 
+在这一小节，将阐述什么是SQL注入、描述一些常见的例子并说明如何寻找和利用各种类型的SQL注入漏洞，最后总结如何预防SQL注入。
+
 ![](https://i.imgur.com/TmX3nt4.png)
 
 
@@ -33,19 +35,49 @@ If you're already familiar with the basic concepts behind SQLi vulnerabilities a
 
 ## What is SQL injection (SQLi)?
 
-SQL injection (SQLi) is a web security vulnerability that allows an attacker to interfere with the queries that an application makes to its database. It generally allows an attacker to view data that they are not normally able to retrieve. This might include data belonging to other users, or any other data that the application itself is able to access. In many cases, an attacker can modify or delete this data, causing persistent changes to the application's content or behavior.
+SQL injection (SQLi) is a web security vulnerability that allows an attacker to interfere with the queries that an application makes to its database. 
+
+SQL注入是一种web安全漏洞，允许攻击者干扰应用程序对其数据库的查询。
+
+It generally allows an attacker to view data that they are not normally able to retrieve. 
+
+SQL注入通常允许攻击者查看他们一般情况下无法查看到的数据。
+
+This might include data belonging to other users, or any other data that the application itself is able to access. 
+
+这些数据可能包括属于其他用户的数据，或是应用程序本身才可访问的数据。
+
+In many cases, an attacker can modify or delete this data, causing persistent changes to the application's content or behavior.
+
+在许多情况下，攻击者可以修改或删除这些数据，导致应用程序的内容或行为的持续变化。
 
 In some situations, an attacker can escalate a SQL injection attack to compromise the underlying server or other back-end infrastructure, or perform a denial-of-service attack.
 
-
+在某些情况下，攻击者可以构造SQL注入攻击来损害底层服务器或是其他后端关键基础设施或是执行拒绝服务攻击。
 
 ## What is the impact of a successful SQL injection attack?
 
-A successful SQL injection attack can result in unauthorized access to sensitive data, such as passwords, credit card details, or personal user information. Many high-profile data breaches in recent years have been the result of SQL injection attacks, leading to reputational damage and regulatory fines. In some cases, an attacker can obtain a persistent backdoor into an organization's systems, leading to a long-term compromise that can go unnoticed for an extended period.
+A successful SQL injection attack can result in unauthorized access to sensitive data, such as passwords, credit card details, or personal user information. 
+
+一次成功的SQL注入攻击能够导致对敏感数据的非授权访问，比如密码、信用卡信息或用户个人信息等。
+
+Many high-profile data breaches in recent years have been the result of SQL injection attacks, leading to reputational damage and regulatory fines. 
+
+近些年来，许多知名的数据泄露都是由于SQL注入攻击造成的。泄露了数据的公司不仅名誉遭受了损失，还要受到监管机构的罚款。
+
+In some cases, an attacker can obtain a persistent backdoor into an organization's systems, leading to a long-term compromise that can go unnoticed for an extended period.
+
+在某些情况下，攻击者可以获得对组织系统的一个持久的后门，这使得他们能够长时间地、悄悄地损害组织系统。
 
 ## SQL injection examples
 
-There are a wide variety of SQL injection vulnerabilities, attacks, and techniques, which arise in different situations. Some common SQL injection examples include:
+There are a wide variety of SQL injection vulnerabilities, attacks, and techniques, which arise in different situations. 
+
+基于情况的不同，有各种各样的SQL注入漏洞、攻击和技巧。
+
+Some common SQL injection examples include:
+
+一些常见的SQL注入的例子包括：
 
 - [Retrieving hidden data](https://portswigger.net/web-security/sql-injection#retrieving-hidden-data), where you can modify a SQL query to return additional results.
 - [Subverting application logic](https://portswigger.net/web-security/sql-injection#subverting-application-logic), where you can change a query to interfere with the application's logic.
@@ -55,7 +87,13 @@ There are a wide variety of SQL injection vulnerabilities, attacks, and techniqu
 
 ## Retrieving hidden data
 
-Consider a shopping application that displays products in different categories. When the user clicks on the Gifts category, their browser requests the URL:
+Consider a shopping application that displays products in different categories. 
+
+考虑一个分类展示不同商品的商店应用。
+
+When the user clicks on the Gifts category, their browser requests the URL:
+
+当用户点击Gifts分类时，浏览器会向以下URL发起请求：
 
 ```
 https://insecure-website.com/products?category=Gifts
@@ -63,20 +101,32 @@ https://insecure-website.com/products?category=Gifts
 
 This causes the application to make a SQL query to retrieve details of the relevant products from the database:
 
+这会使得应用程序向数据库发起如下的查询，希望检索出相关产品的细节。
+
 ```
 SELECT * FROM products WHERE category = 'Gifts' AND released = 1
 ```
 
 This SQL query asks the database to return:
 
+该SQL查询要求数据库返回以下信息：
+
 - all details (*)
 - from the products table
 - where the category is Gifts
 - and released is 1.
 
-The restriction `released = 1` is being used to hide products that are not released. For unreleased products, presumably `released = 0`.
+The restriction `released = 1` is being used to hide products that are not released. 
+
+`released=1`的限制条件被用来隐藏未发售的商品。
+
+For unreleased products, presumably `released = 0`.
+
+对于未发售的商品，大概率`released=0`.
 
 The application doesn't implement any defenses against SQL injection attacks, so an attacker can construct an attack like:
+
+该应用程序并没有针对SQL注入攻击实现任何的防御措施，所以攻击者可以构造如下的攻击：
 
 ```
 https://insecure-website.com/products?category=Gifts'--
@@ -84,13 +134,27 @@ https://insecure-website.com/products?category=Gifts'--
 
 This results in the SQL query:
 
+最终的SQL语句是：
+
 ```
 SELECT * FROM products WHERE category = 'Gifts'--' AND released = 1
 ```
 
-The key thing here is that the double-dash sequence `--` is a comment indicator in SQL, and means that the rest of the query is interpreted as a comment. This effectively removes the remainder of the query, so it no longer includes `AND released = 1`. This means that all products are displayed, including unreleased products.
+The key thing here is that the double-dash sequence `--` is a comment indicator in SQL, and means that the rest of the query is interpreted as a comment. 
+
+此处的关键在于双破折号`--`在SQL中是注释符的意思，这意味着查询的剩余部分会被SQL解释成注释。
+
+This effectively removes the remainder of the query, so it no longer includes `AND released = 1`. 
+
+这实际上移除了查询的剩余部分，所以查询不再包含`AND released=1`。
+
+This means that all products are displayed, including unreleased products.
+
+这意味着所有的商品都会被展示出来，包括未发售的商品。
 
 Going further, an attacker can cause the application to display all the products in any category, including categories that they don't know about:
+
+进一步地，攻击者可以使应用程序展示任何分类的商品，包括他们不知道的分类。攻击的SQL语句如下：
 
 ```
 https://insecure-website.com/products?category=Gifts'+OR+1=1--
@@ -98,15 +162,29 @@ https://insecure-website.com/products?category=Gifts'+OR+1=1--
 
 This results in the SQL query:
 
+后端最终的SQL语句如下：
+
 ```
 SELECT * FROM products WHERE category = 'Gifts' OR 1=1--' AND released = 1
 ```
 
 The modified query will return all items where either the category is Gifts, or 1 is equal to 1. Since `1=1` is always true, the query will return all items.
 
+修改后的查询会返回分类是Gifts或1=1的所有项，因为1=1是永真的，所以查询实际上会返回所有项。
+
 #### Warning
 
-Take care when injecting the condition `OR 1=1` into a SQL query. Although this may be harmless in the initial context you're injecting into, it's common for applications to use data from a single request in multiple different queries. If your condition reaches an `UPDATE` or `DELETE` statement, for example, this can result in an accidental loss of data.
+Take care when injecting the condition `OR 1=1` into a SQL query. 
+
+当向某个SQL查询注入条件`OR 1=1`时要小心。
+
+Although this may be harmless in the initial context you're injecting into, it's common for applications to use data from a single request in multiple different queries. 
+
+尽管该条件在你正注入的初始上下文中可能是无害的，但应用程序常常在多个不同的查询中使用来个单个请求的数据。
+
+If your condition reaches an `UPDATE` or `DELETE` statement, for example, this can result in an accidental loss of data.
+
+举个例子，若你的查询条件被带入到了`UPDATE`或`DELETE`语句中，这可能会导致数据的意外丢失。
 
 **LAB**
 
@@ -116,15 +194,31 @@ Take care when injecting the condition `OR 1=1` into a SQL query. Although this 
 
 ## Subverting application logic
 
-Consider an application that lets users log in with a username and password. If a user submits the username `wiener` and the password `bluecheese`, the application checks the credentials by performing the following SQL query:
+Consider an application that lets users log in with a username and password. 
+
+考虑一个让用户以账号密码登录的应用。
+
+If a user submits the username `wiener` and the password `bluecheese`, the application checks the credentials by performing the following SQL query:
+
+若用户提交了用户名`wiener`和密码`bluecheese`，那么应用会通过执行下列的SQL查询来验证用户提交的凭据：
 
 ```
 SELECT * FROM users WHERE username = 'wiener' AND password = 'bluecheese'
 ```
 
-If the query returns the details of a user, then the login is successful. Otherwise, it is rejected.
+If the query returns the details of a user, then the login is successful. 
 
-Here, an attacker can log in as any user without a password simply by using the SQL comment sequence `--` to remove the password check from the `WHERE` clause of the query. For example, submitting the username `administrator'--` and a blank password results in the following query:
+若查询返回了用户的信息，那么登录成功。
+
+Otherwise, it is rejected.
+
+否则，登录就会被拒绝。
+
+Here, an attacker can log in as any user without a password simply by using the SQL comment sequence `--` to remove the password check from the `WHERE` clause of the query. 
+
+在此处，攻击者可在无密码的情况下以任何用户的身份登录。他只需使用SQL注释符序列`--`来移除掉查询的`WHERE`字句。
+
+For example, submitting the username `administrator'--` and a blank password results in the following query:
 
 ```
 SELECT * FROM users WHERE username = 'administrator'--' AND password = ''
@@ -134,9 +228,7 @@ This query returns the user whose username is `administrator` and successfully l
 
 **LAB**
 
-**APPRENTICE**[SQL injection vulnerability allowing login bypass](https://portswigger.net/web-security/sql-injection/lab-login-bypass)
-
-Not solved
+**APPRENTICE** [SQL injection vulnerability allowing login bypass](https://portswigger.net/web-security/sql-injection/lab-login-bypass)
 
 ## Retrieving data from other database tables
 
