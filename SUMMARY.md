@@ -2,7 +2,9 @@
 
 * [PortSwigger](README.md)
   * [Server-side topics](portswigger/server-side-topics/README.md)
-    * [Page 1](portswigger/server-side-topics/page-1.md)
+    * [SQL injection](readme/server-side-topics/page-1/README.md)
+      * [examining the database](readme/server-side-topics/page-1/examining-the-database.md)
+      * [😆 cheat sheet](readme/server-side-topics/page-1/cheat-sheet.md)
   * [Client-side topics](portswigger/client-side-topics/README.md)
     * [Cross-site scripting](portswigger/client-side-topics/cross-site-scripting.md)
       * [alert-is-dead-long-live-print](portswigger/client-side-topics/cross-site-scripting/alert-is-dead-long-live-print.md)
