@@ -8,9 +8,13 @@ description: https://portswigger.net/web-security/sql-injection/cheat-sheet
 
 This SQL injection cheat sheet contains examples of useful syntax that you can use to perform a variety of tasks that often arise when performing SQL injection attacks.
 
-### String concatenation <a href="#string-concatenation" id="string-concatenation"></a>
+SQL注入备忘录包含许多有用的语法例子，当你进行SQL注入攻击时，你可以使用它们执行各种常见的任务。
+
+### String concatenation-字符串拼接 <a href="#string-concatenation" id="string-concatenation"></a>
 
 You can concatenate together multiple strings to make a single string.
+
+你可以将多个字符串拼接成一个字符串。
 
 | Oracle     | `'foo'\|\|'bar'`                                                                                                 |
 | ---------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -18,9 +22,19 @@ You can concatenate together multiple strings to make a single string.
 | PostgreSQL | `'foo'\|\|'bar'`                                                                                                 |
 | MySQL      | <p><code>'foo' 'bar'</code> [Note the space between the two strings]<br><code>CONCAT('foo','bar')</code><br></p> |
 
-### Substring <a href="#substring" id="substring"></a>
+### Substring-子串 <a href="#substring" id="substring"></a>
 
-You can extract part of a string, from a specified offset with a specified length. Note that the offset index is 1-based. Each of the following expressions will return the string `ba`.
+You can extract part of a string, from a specified offset with a specified length.&#x20;
+
+你可以从某个特定偏移处开始提取出一个字符串的特定长度的部分。
+
+Note that the offset index is 1-based.&#x20;
+
+注意到偏移量是从1开始的
+
+Each of the following expressions will return the string `ba`.
+
+下列的表达式都会返回字符串`ba`
 
 | Oracle     | `SUBSTR('foobar', 4, 2)`    |
 | ---------- | --------------------------- |
@@ -28,9 +42,11 @@ You can extract part of a string, from a specified offset with a specified lengt
 | PostgreSQL | `SUBSTRING('foobar', 4, 2)` |
 | MySQL      | `SUBSTRING('foobar', 4, 2)` |
 
-### Comments <a href="#comments" id="comments"></a>
+### Comments-注释 <a href="#comments" id="comments"></a>
 
 You can use comments to truncate a query and remove the portion of the original query that follows your input.
+
+你可以使用注释来截断查询并移除掉原始查询中你的输入后面的部分。
 
 | Oracle     | <p><code>--comment</code><br></p>                                                                                          |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------- |
@@ -38,7 +54,9 @@ You can use comments to truncate a query and remove the portion of the original 
 | PostgreSQL | <p><code>--comment</code><br><code>/*comment*/</code></p>                                                                  |
 | MySQL      | <p><code>#comment</code><br><code>-- comment</code> [Note the space after the double dash]<br><code>/*comment*/</code></p> |
 
-### Database version <a href="#database-version" id="database-version"></a>
+MySQL双破折号注释后要跟上一个空格。
+
+### Database version-数据库版本 <a href="#database-version" id="database-version"></a>
 
 You can query the database to determine its type and version. This information is useful when formulating more complicated attacks.
 
@@ -48,15 +66,13 @@ You can query the database to determine its type and version. This information i
 | PostgreSQL | `SELECT version()`                                                                                  |
 | MySQL      | `SELECT @@version`                                                                                  |
 
-### Database contents <a href="#database-contents" id="database-contents"></a>
+### Database contents-数据库内容 <a href="#database-contents" id="database-contents"></a>
 
 You can list the tables that exist in the database, and the columns that those tables contain.
 
-| Oracle     | <p><code>SELECT * FROM all_tables</code><br><code>SELECT * FROM all_tab_columns WHERE table_name = 'TABLE-NAME-HERE'</code></p>                               |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Microsoft  | <p><code>SELECT * FROM information_schema.tables</code><br><code>SELECT * FROM information_schema.columns WHERE table_name = 'TABLE-NAME-HERE'</code><br></p> |
-| PostgreSQL | <p><code>SELECT * FROM information_schema.tables</code><br><code>SELECT * FROM information_schema.columns WHERE table_name = 'TABLE-NAME-HERE'</code><br></p> |
-| MySQL      | <p><code>SELECT * FROM information_schema.tables</code><br><code>SELECT * FROM information_schema.columns WHERE table_name = 'TABLE-NAME-HERE'</code><br></p> |
+你可以列出数据库中存在的表，以及这些表含有的列。
+
+<table data-header-hidden><thead><tr><th width="139"></th><th></th></tr></thead><tbody><tr><td>Oracle</td><td><code>SELECT * FROM all_tables</code><br><code>SELECT * FROM all_tab_columns WHERE table_name = 'TABLE-NAME-HERE'</code></td></tr><tr><td>Microsoft</td><td><code>SELECT * FROM information_schema.tables</code><br><code>SELECT * FROM information_schema.columns WHERE table_name = 'TABLE-NAME-HERE'</code><br></td></tr><tr><td>PostgreSQL</td><td><code>SELECT * FROM information_schema.tables</code><br><code>SELECT * FROM information_schema.columns WHERE table_name = 'TABLE-NAME-HERE'</code><br></td></tr><tr><td>MySQL</td><td><code>SELECT * FROM information_schema.tables</code><br><code>SELECT * FROM information_schema.columns WHERE table_name = 'TABLE-NAME-HERE'</code><br></td></tr></tbody></table>
 
 ### Conditional errors <a href="#conditional-errors" id="conditional-errors"></a>
 
