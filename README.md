@@ -6,3 +6,5 @@ description: https://portswigger.net/web-security/learning-path
 
 冲！
 
+新生！
+
