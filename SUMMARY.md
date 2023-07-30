@@ -5,6 +5,7 @@
     * [😣 SQL injection](portswigger/server-side-topics/page-1.md)
       * [examining the database](readme/server-side-topics/page-1/examining-the-database.md)
       * [😆 cheat sheet](readme/server-side-topics/page-1/cheat-sheet.md)
+    * [Directory traversal](readme/server-side-topics/directory-traversal.md)
   * [Client-side topics](portswigger/client-side-topics/README.md)
     * [Cross-site scripting](portswigger/client-side-topics/cross-site-scripting.md)
       * [alert-is-dead-long-live-print](portswigger/client-side-topics/cross-site-scripting/alert-is-dead-long-live-print.md)
