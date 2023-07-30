@@ -1,20 +1,4 @@
-# 🚗 SQL injection
-
-**tags: `PortSwigger`**
-
-***
-
-title: PortSwigger-SQL-injection mathjax: true toc: true date: 2023-03-30 16:50:16 categories: SQL注入 tags: PortSwigger typora-root-url: ..
-
-***
-
-坚持英文学习第一天。
-
-\<!--more-->
-
-tags: `PortSwigger`SQL injectionLabsWhat is SQL injection (SQLi)?What is the impact of a successful SQL injection attack?SQL injection examplesRetrieving hidden dataWarningSubverting application logic（颠覆应用程序的逻辑）Retrieving data from other database tablesRead moreExamining the databaseRead moreBlind SQL injection vulnerabilitiesRead moreHow to detect SQL injection vulnerabilitiesSQL injection in different parts of the querySQL injection in different contextsSecond-order SQL injectionDatabase-specific factorsRead moreHow to prevent SQL injectionRead more
-
-## SQL injection
+# SQL injection
 
 In this section, we'll explain what SQL injection (SQLi) is, describe some common examples, explain how to find and exploit various kinds of SQL injection vulnerabilities, and summarize how to prevent SQL injection.
 

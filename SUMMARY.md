@@ -2,7 +2,7 @@
 
 * [PortSwigger](README.md)
   * [Server-side topics](portswigger/server-side-topics/README.md)
-    * [🚗 SQL injection](portswigger/server-side-topics/page-1.md)
+    * [SQL injection](portswigger/server-side-topics/page-1.md)
       * [⌚ examining the database](readme/server-side-topics/page-1/examining-the-database.md)
       * [😆 cheat sheet](readme/server-side-topics/page-1/cheat-sheet.md)
       * [SQL injection UNION attacks](readme/server-side-topics/page-1/sql-injection-union-attacks.md)
