@@ -2,10 +2,12 @@
 
 * [PortSwigger](README.md)
   * [Server-side topics](portswigger/server-side-topics/README.md)
-    * [😣 SQL injection](portswigger/server-side-topics/page-1.md)
+    * [🚗 SQL injection](portswigger/server-side-topics/page-1.md)
       * [examining the database](readme/server-side-topics/page-1/examining-the-database.md)
       * [😆 cheat sheet](readme/server-side-topics/page-1/cheat-sheet.md)
     * [Directory traversal](readme/server-side-topics/directory-traversal.md)
+    * [command injection](readme/server-side-topics/command-injection.md)
+    * [File upload vulnerabilities](readme/server-side-topics/file-upload-vulnerabilities.md)
   * [Client-side topics](portswigger/client-side-topics/README.md)
     * [Cross-site scripting](portswigger/client-side-topics/cross-site-scripting.md)
       * [alert-is-dead-long-live-print](portswigger/client-side-topics/cross-site-scripting/alert-is-dead-long-live-print.md)

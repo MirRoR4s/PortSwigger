@@ -1,10 +1,26 @@
-# 😣 SQL injection
+# 🚗 SQL injection
+
+**tags: `PortSwigger`**
+
+***
+
+title: PortSwigger-SQL-injection mathjax: true toc: true date: 2023-03-30 16:50:16 categories: SQL注入 tags: PortSwigger typora-root-url: ..
+
+***
+
+坚持英文学习第一天。
+
+\<!--more-->
+
+tags: `PortSwigger`SQL injectionLabsWhat is SQL injection (SQLi)?What is the impact of a successful SQL injection attack?SQL injection examplesRetrieving hidden dataWarningSubverting application logic（颠覆应用程序的逻辑）Retrieving data from other database tablesRead moreExamining the databaseRead moreBlind SQL injection vulnerabilitiesRead moreHow to detect SQL injection vulnerabilitiesSQL injection in different parts of the querySQL injection in different contextsSecond-order SQL injectionDatabase-specific factorsRead moreHow to prevent SQL injectionRead more
+
+## SQL injection
 
 In this section, we'll explain what SQL injection (SQLi) is, describe some common examples, explain how to find and exploit various kinds of SQL injection vulnerabilities, and summarize how to prevent SQL injection.
 
-在这一小节，我们将阐述SQL注入是什么，描述一些常见的SQLi例子，说明如何寻找和利用各种类型的SQL注入漏洞并总结如何预防SQL注入。
+在这一小节，将阐述什么是SQL注入、描述一些常见的例子并说明如何寻找和利用各种类型的SQL注入漏洞，最后总结如何预防SQL注入。
 
-![](../../.gitbook/assets/image.png)
+![](https://i.imgur.com/TmX3nt4.png)
 
 **Labs**
 
@@ -20,7 +36,7 @@ SQL注入是一种web安全漏洞，允许攻击者干扰应用程序对其数�
 
 It generally allows an attacker to view data that they are not normally able to retrieve.
 
-SQL注入通常允许攻击者查看他们一般情况下无法检索到的数据。
+SQL注入通常允许攻击者查看他们一般情况下无法查看到的数据。
 
 This might include data belonging to other users, or any other data that the application itself is able to access.
 
@@ -42,11 +58,11 @@ A successful SQL injection attack can result in unauthorized access to sensitive
 
 Many high-profile data breaches in recent years have been the result of SQL injection attacks, leading to reputational damage and regulatory fines.
 
-近些年来，许多知名的数据泄露都是由于SQL注入攻击造成的。泄露了数据的公司不仅遭受了名誉的损失，还要受到监管机构的罚款。
+近些年来，许多知名的数据泄露都是由于SQL注入攻击造成的。泄露了数据的公司不仅名誉遭受了损失，还要受到监管机构的罚款。
 
 In some cases, an attacker can obtain a persistent backdoor into an organization's systems, leading to a long-term compromise that can go unnoticed for an extended period.
 
-在某些情况下，攻击者可以获得组织系统的一个持久后门，这使得他们能够长时间地、静默地损害组织的系统。
+在某些情况下，攻击者可以获得对组织系统的一个持久的后门，这使得他们能够长时间地、悄悄地损害组织系统。
 
 ### SQL injection examples
 
@@ -68,27 +84,27 @@ Some common SQL injection examples include:
 
 Consider a shopping application that displays products in different categories.
 
-考虑一个分类展示商品的商店应用程序。
+考虑一个分类展示不同商品的商店应用。
 
 When the user clicks on the Gifts category, their browser requests the URL:
 
-当用户点击 Gifts 分类时，浏览器会向以下 URL 发起请求：
+当用户点击Gifts分类时，浏览器会向以下URL发起请求：
 
-```http
-https://insecure-website.com/products?category=Gifts
+```
+ https://insecure-website.com/products?category=Gifts
 ```
 
 This causes the application to make a SQL query to retrieve details of the relevant products from the database:
 
-这会使得应用程序向数据库发起查询来检索出相关产品的细节。
+这会使得应用程序向数据库发起如下的查询，希望检索出相关产品的细节。
 
-```sql
-SELECT * FROM products WHERE category = 'Gifts' AND released = 1
+```
+ SELECT * FROM products WHERE category = 'Gifts' AND released = 1
 ```
 
 This SQL query asks the database to return:
 
-该 SQL 查询要求数据库返回以下信息：
+该SQL查询要求数据库返回以下信息：
 
 * all details (\*)
 * from the products table
@@ -107,21 +123,21 @@ The application doesn't implement any defenses against SQL injection attacks, so
 
 该应用程序并没有针对SQL注入攻击实现任何的防御措施，所以攻击者可以构造如下的攻击：
 
-```http
-https://insecure-website.com/products?category=Gifts'--
+```
+ https://insecure-website.com/products?category=Gifts'--
 ```
 
 This results in the SQL query:
 
-这导致如下的 SQL 查询：
+最终的SQL语句是：
 
-```sql
-SELECT * FROM products WHERE category = 'Gifts'--' AND released = 1
+```
+ SELECT * FROM products WHERE category = 'Gifts'--' AND released = 1
 ```
 
 The key thing here is that the double-dash sequence `--` is a comment indicator in SQL, and means that the rest of the query is interpreted as a comment.
 
-此处的关键在于双破折号`--`在 SQL 中是注释符的意思，这意味着查询的剩余部分会被 SQL 解释成注释。
+此处的关键在于双破折号`--`在SQL中是注释符的意思，这意味着查询的剩余部分会被SQL解释成注释。
 
 This effectively removes the remainder of the query, so it no longer includes `AND released = 1`.
 
@@ -133,33 +149,33 @@ This means that all products are displayed, including unreleased products.
 
 Going further, an attacker can cause the application to display all the products in any category, including categories that they don't know about:
 
-进一步地，攻击者可以使应用程序展示任何类别的商品，包括攻击者不知道的类别。攻击的SQL语句如下：
+进一步地，攻击者可以使应用程序展示任何分类的商品，包括他们不知道的分类。攻击的SQL语句如下：
 
-```http
-https://insecure-website.com/products?category=Gifts'+OR+1=1--
+```
+ https://insecure-website.com/products?category=Gifts'+OR+1=1--
 ```
 
 This results in the SQL query:
 
-这导致的SQL查询如下：
+后端最终的SQL语句如下：
 
-```sql
-SELECT * FROM products WHERE category = 'Gifts' OR 1=1--' AND released = 1
+```
+ SELECT * FROM products WHERE category = 'Gifts' OR 1=1--' AND released = 1
 ```
 
 The modified query will return all items where either the category is Gifts, or 1 is equal to 1. Since `1=1` is always true, the query will return all items.
 
-修改后的查询会返回类别是 Gifts 或 1=1 的所有项，因为`1=1`是永真的，所以查询会返回所有的项。
+修改后的查询会返回分类是Gifts或1=1的所有项，因为1=1是永真的，所以查询实际上会返回所有项。
 
 **Warning**
 
 Take care when injecting the condition `OR 1=1` into a SQL query.
 
-当向某个SQL查询注入条件语句`OR 1=1`时要小心。
+当向某个SQL查询注入条件`OR 1=1`时要小心。
 
 Although this may be harmless in the initial context you're injecting into, it's common for applications to use data from a single request in multiple different queries.
 
-尽管该条件语句在你注入的那个初始初始上下文中可能是无害的，但是应用程序常常在多个不同的查询中使用来自单个请求的数据。
+尽管该条件在你正注入的初始上下文中可能是无害的，但应用程序常常在多个不同的查询中使用来个单个请求的数据。
 
 If your condition reaches an `UPDATE` or `DELETE` statement, for example, this can result in an accidental loss of data.
 
@@ -167,9 +183,7 @@ If your condition reaches an `UPDATE` or `DELETE` statement, for example, this c
 
 **LAB**
 
-**APPRENTICE**&#x20;
-
-[SQL injection vulnerability in WHERE clause allowing retrieval of hidden data](https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data)
+**APPRENTICE** [SQL injection vulnerability in WHERE clause allowing retrieval of hidden data](https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data)
 
 ### Subverting application logic（颠覆应用程序的逻辑）
 
@@ -181,8 +195,8 @@ If a user submits the username `wiener` and the password `bluecheese`, the appli
 
 若用户提交了用户名`wiener`和密码`bluecheese`，那么应用会通过执行下列的SQL查询来验证用户提交的凭据：
 
-```sql
-SELECT * FROM users WHERE username = 'wiener' AND password = 'bluecheese'
+```
+ SELECT * FROM users WHERE username = 'wiener' AND password = 'bluecheese'
 ```
 
 If the query returns the details of a user, then the login is successful.
@@ -191,46 +205,44 @@ If the query returns the details of a user, then the login is successful.
 
 Otherwise, it is rejected.
 
-否则，登录失败。
+否则，登录就会被拒绝。
 
 Here, an attacker can log in as any user without a password simply by using the SQL comment sequence `--` to remove the password check from the `WHERE` clause of the query.
 
-此处，通过使用 SQL 注释符序列 `--` 移除掉 `WHERE` 字句的密码验证，攻击者就能够以任何用户的身份登录而无需密码。
+在此处，攻击者可在无密码的情况下以任何用户的身份登录。他只需使用SQL注释符序列`--`来移除掉查询的`WHERE`字句。
 
 For example, submitting the username `administrator'--` and a blank password results in the following query:
 
 举个例子，提交用户名`administrator'--` 和一个空密码会构成以下查询：
 
-```sql
-SELECT * FROM users WHERE username = 'administrator'--' AND password = ''
+```
+ SELECT * FROM users WHERE username = 'administrator'--' AND password = ''
 ```
 
 This query returns the user whose username is `administrator` and successfully logs the attacker in as that user.
 
-该查询会返回用户名是`administrator`的用户并使攻击者成功地以该用户的身份登录。
+该查询会返回用户名是`administrator`的用户并让攻击者成功地以该用户的身份登录。
 
 **LAB**
 
-**APPRENTICE**
-
-[SQL injection vulnerability allowing login bypass](https://portswigger.net/web-security/sql-injection/lab-login-bypass)
+**APPRENTICE** [SQL injection vulnerability allowing login bypass](https://portswigger.net/web-security/sql-injection/lab-login-bypass)
 
 ### Retrieving data from other database tables
 
 In cases where the results of a SQL query are returned within the application's responses, an attacker can leverage a SQL injection vulnerability to retrieve data from other tables within the database.
 
-在 SQL 查询结果会被返回到应用程序响应内的情况下，攻击者能够利用 SQL 注入漏洞检索数据库内其他表的数据。
+在SQL查询结果会被返回到应用程序响应内的情况下，攻击者能够利用SQL注入漏洞检索数据库内其他表的数据。
 
 This is done using the `UNION` keyword, which lets you execute an additional `SELECT` query and append the results to the original query.
 
-这是通过`UNION`关键字实现的，UNION 关键字能让我们执行一个额外的`SELECT`查询并将查询结果附加到原始查询之后。
+这是通过`UNION`关键字实现的，UNION关键字能让你执行一个额外的`SELECT`查询并将查询结果附加到原始查询后。
 
 For example, if an application executes the following query containing the user input "Gifts":
 
-举个例子，若应用程序执行的是以下查询，其中 "Gifts" 处来自用户输入。
+举个例子，若应用程序执行了以下查询，其中"Gifts"来自用户的输入。
 
 ```
-SELECT name, description FROM products WHERE category = 'Gifts'
+ SELECT name, description FROM products WHERE category = 'Gifts'
 ```
 
 then an attacker can submit the input:
@@ -238,7 +250,7 @@ then an attacker can submit the input:
 那么攻击者能够提交下列输入：
 
 ```
-' UNION SELECT username, password FROM users--
+ ' UNION SELECT username, password FROM users--
 ```
 
 This will cause the application to return all usernames and passwords along with the names and descriptions of products.
@@ -253,7 +265,7 @@ This will cause the application to return all usernames and passwords along with
 
 Following initial identification of a SQL injection vulnerability, it is generally useful to obtain some information about the database itself.
 
-在初步识别出 SQL 注入漏洞后，通常情况下获得一些有关于数据库本身的信息是很有用的。
+在初步识别出SQL注入漏洞后，通常情况下获得一些有关于数据库本身的信息是很有用的。
 
 This information can often pave the way for further exploitation.
 
@@ -261,30 +273,30 @@ This information can often pave the way for further exploitation.
 
 You can query the version details for the database.
 
-你也可以查询数据库具体的版本信息。
+你也可以执行数据库具体的版本信息。
 
 The way that this is done depends on the database type, so you can **infer** the database type from whichever technique works.
 
-具体的查询方式取决于数据库的类型，因此你可以从有效的 payload 中推论出数据库的类型。
+具体的实现方式取决于数据库的类型，因此你可以从有效的payload中推论出数据库的类型。
 
 For example, on Oracle you can execute:
 
-举个例子，在 Oracle 中你可以执行如下查询：
+举个例子，在Oracle中你可以执行如下查询：
 
-```sql
-SELECT * FROM v$version
+```
+ SELECT * FROM v$version
 ```
 
 You can also determine what database tables exist, and which columns they contain.
 
-你也可以确定数据库存在什么表以及这些表所含有的列。
+你也可以确定数据库存在什么表以及表所含有的列。
 
 For example, on most databases you can execute the following query to list the tables:
 
 举个例子，在大部分数据库中你可以执行下列查询来列出所有表：
 
-```sql
-SELECT * FROM information_schema.tables
+```
+ SELECT * FROM information_schema.tables
 ```
 
 **Read more**
@@ -295,99 +307,77 @@ SELECT * FROM information_schema.tables
 
 Many instances of SQL injection are blind vulnerabilities.
 
-许多 SQL 注入实例都是盲注。
+许多SQL注入都是盲注。
 
 This means that the application does not return the results of the SQL query or the details of any database errors within its responses.
 
-这意味着应用程序不会将 SQL 查询的结果或是数据库的错误信息返回到其响应中。
+这意味着应用程序不会将SQL查询的结果或是数据库的错误信息返回到其响应中。
 
 Blind vulnerabilities can still be exploited to access unauthorized data, but the techniques involved are generally more complicated and difficult to perform.
 
-不过我们仍然可以利用盲注来未授权地访问数据，但是盲注涉及到的技巧通常更加复杂并且难以执行。
+我们仍然可以利用盲注来未授权地访问数据，但是盲注涉及到的技巧通常更加复杂并难以执行。
 
 Depending on the nature of the vulnerability and the database involved, the following techniques can be used to exploit blind SQL injection vulnerabilities:
 
-取决于漏洞的特点以及所涉及到的数据库，下列技巧可被用于利用 SQL 盲注漏洞：
+取决于漏洞的特点以及所涉及到的数据库，下列技巧可被用于SQL盲注漏洞的利用：
 
 * You can change the logic of the query to trigger a detectable difference in the application's response depending on the truth of a single condition. This might involve injecting a new condition into some Boolean logic, or conditionally triggering an error such as a divide-by-zero.-根据条件语句的真假，你可以更改查询的逻辑以此在应用程序的响应中引发一个可探查到的差异。这也许会涉及到将一个新的条件注入到某些布尔逻辑中去或者是有条件地引发一个错误，比如除数为0.
 * You can conditionally trigger a time delay in the processing of the query, allowing you to infer the truth of the condition based on the time that the application takes to respond.-你也可以在查询的过程中有条件地引发一个时间延迟，这就允许你推断应用程序会响应的基于时间的条件语句的真假
-* You can trigger an out-of-band network interaction, using [OAST](https://portswigger.net/burp/application-security-testing/oast) techniques. This technique is extremely powerful and works in situations where the other techniques do not. Often, you can directly exfiltrate data via the out-of-band channel, for example by placing the data into a DNS lookup for a domain that you control.-你也可以使用 OAST 技巧引发一个带外的网络交互，该技巧极其有力并且在其它技巧都无法工作时依然有效。通常，你可以通过带外信道直接提取数据，比如将数据放置在某个你能控制的域名的 DNS 查询中。
+* You can trigger an out-of-band network interaction, using [OAST](https://portswigger.net/burp/application-security-testing/oast) techniques. This technique is extremely powerful and works in situations where the other techniques do not. Often, you can directly exfiltrate data via the out-of-band channel, for example by placing the data into a DNS lookup for a domain that you control.-你也可以使用OAST技术引发一个带外的网络交互，该技巧极其有力并且在其它技巧都无法工作时依然有效。通常，你可以通过带外信道直接地提取数据。比如将数据放置在某个你能控制的域名的DNS查询中。
 
 **Read more**
 
 [Blind SQL injection](https://portswigger.net/web-security/sql-injection/blind)
 
-### How to detect SQL injection vulnerabilities-如何探查SQL注入漏洞
+### How to detect SQL injection vulnerabilities
 
 The majority of SQL injection vulnerabilities can be found quickly and reliably using Burp Suite's [web vulnerability scanner](https://portswigger.net/burp/vulnerability-scanner).
 
-通过 Burp Suite 的 web 漏洞扫描器可以快速可靠地发现大部分的 SQL 注入漏洞。
+通过Burp Suite 的web漏洞扫描器可以快速可靠地发现大部分的SQL注入漏洞。
 
 SQL injection can be detected manually by using a systematic set of tests against every entry point in the application. This typically involves:
 
-不过我们也能手工地探查 SQL 注入漏洞，这可以通过针对应用程序的每个输入点使用一个系统的测试集来做到，通常情况下这包括以下步骤：
+我们也能手工地探查SQL注入漏洞，比如针对应用程序的每个输入点使用一个系统的测试集，通常情况下这包括以下步骤：
 
 * Submitting the single quote character `'` and looking for errors or other anomalies.-提交单引号作为输入并查看有无错误或是其它异常现象。.
 * Submitting some SQL-specific syntax that evaluates to the base (original) value of the entry point, and to a different value, and looking for systematic differences in the resulting application responses.-
 * Submitting Boolean conditions such as `OR 1=1` and `OR 1=2`, and looking for differences in the application's responses.-提交如`OR 1=1` 和`OR 1=2`等的布尔条件并寻找响应中的差异。
-* Submitting payloads designed to trigger time delays when executed within a SQL query, and looking for differences in the time taken to respond.-提交在执行时会引起时间延迟的 payloads ，并寻找各响应所花费的时间差异。
-* Submitting OAST payloads designed to trigger an out-of-band network interaction when executed within a SQL query, and monitoring for any resulting interactions.-提交在执行时会引起带外网络交互的 OAST payloads，并监视任何产生的交互。
+* Submitting payloads designed to trigger time delays when executed within a SQL query, and looking for differences in the time taken to respond.-提交在执行时会引起时间延迟的payloads，并寻找响应所花费的时间差异。
+* Submitting OAST payloads designed to trigger an out-of-band network interaction when executed within a SQL query, and monitoring for any resulting interactions.-提交在执行时会引起带外网络交互的OAST payloads，并监视任何产生的交互。
 
-### SQL injection in different parts of the query-在查询不同部分中的SQL注入
+### SQL injection in different parts of the query
 
-Most SQL injection vulnerabilities arise within the `WHERE` clause of a `SELECT` query.&#x20;
+Most SQL injection vulnerabilities arise within the `WHERE` clause of a `SELECT` query. This type of SQL injection is generally well-understood by experienced testers.
 
-大部分的SQL注入漏洞都是出现在`SELECT` 查询的`WHERE` 字句内。
-
-This type of SQL injection is generally well-understood by experienced testers.
-
-这种类型的SQL注入对于有经验的测试者来说很好理解。
-
-But SQL injection vulnerabilities can in principle occur at any location within the query, and within different query types.&#x20;
-
-但是SQL注入漏洞原则上可以出现在不同查询类型内的任何位置
-
-The most common other locations where SQL injection arises are:
-
-SQL注入常出现的其他位置是：
+But SQL injection vulnerabilities can in principle occur at any location within the query, and within different query types. The most common other locations where SQL injection arises are:
 
 * In `UPDATE` statements, within the updated values or the `WHERE` clause.
 * In `INSERT` statements, within the inserted values.
 * In `SELECT` statements, within the table or column name.
 * In `SELECT` statements, within the `ORDER BY` clause.
 
-### SQL injection in different contexts-不同上下文中的SQL注入
+### SQL injection in different contexts
 
-In all of the labs so far, you've used the query string to inject your malicious SQL payload. However, it's important to note that you can perform SQL injection attacks using any controllable input that is processed as a SQL query by the application.&#x20;
+In all of the labs so far, you've used the query string to inject your malicious SQL payload. However, it's important to note that you can perform SQL injection attacks using any controllable input that is processed as a SQL query by the application. For example, some websites take input in JSON or XML format and use this to query the database.
 
-在目前为止的所有实验室中，你已使用查询字符串来注入你的恶意 SQL payload。
-
-For example, some websites take input in JSON or XML format and use this to query the database.
-
-These different formats may even provide alternative ways for you to [obfuscate attacks](https://portswigger.net/web-security/essential-skills/obfuscating-attacks-using-encodings#obfuscation-via-xml-encoding) that are otherwise blocked due to WAFs and other defense mechanisms.&#x20;
-
-Weak implementations often just look for common SQL injection keywords within the request, so you may be able to bypass these filters by simply encoding or escaping characters in the prohibited keywords.&#x20;
-
-For example, the following XML-based SQL injection uses an XML escape sequence to encode the `S` character in `SELECT`:
+These different formats may even provide alternative ways for you to [obfuscate attacks](https://portswigger.net/web-security/essential-skills/obfuscating-attacks-using-encodings#obfuscation-via-xml-encoding) that are otherwise blocked due to WAFs and other defense mechanisms. Weak implementations often just look for common SQL injection keywords within the request, so you may be able to bypass these filters by simply encoding or escaping characters in the prohibited keywords. For example, the following XML-based SQL injection uses an XML escape sequence to encode the `S` character in `SELECT`:
 
 ```
-<stockCheck>
-    <productId>
-        123
-    </productId>
-    <storeId>
-        999 &#x53;ELECT * FROM information_schema.tables
-    </storeId>
-</stockCheck>
+ <stockCheck>
+     <productId>
+         123
+     </productId>
+     <storeId>
+         999 &#x53;ELECT * FROM information_schema.tables
+     </storeId>
+ </stockCheck>
 ```
 
 This will be decoded server-side before being passed to the SQL interpreter.
 
 **LAB**
 
-**PRACTITIONER**
-
-[SQL injection with filter bypass via XML encoding](https://portswigger.net/web-security/sql-injection/lab-sql-injection-with-filter-bypass-via-xml-encoding)
+**PRACTITIONER**[SQL injection with filter bypass via XML encoding](https://portswigger.net/web-security/sql-injection/lab-sql-injection-with-filter-bypass-via-xml-encoding)
 
 Not solved
 
@@ -395,11 +385,19 @@ Not solved
 
 First-order SQL injection arises where the application takes user input from an HTTP request and, in the course of processing that request, incorporates the input into a SQL query in an unsafe way.
 
-In second-order SQL injection (also known as stored SQL injection), the application takes user input from an HTTP request and stores it for future use. This is usually done by placing the input into a database, but no vulnerability arises at the point where the data is stored. Later, when handling a different HTTP request, the application retrieves the stored data and incorporates it into a SQL query in an unsafe way.
+In second-order SQL injection (also known as stored SQL injection), the application takes user input from an HTTP request and stores it for future use.
+
+This is usually done by placing the input into a database, but no vulnerability arises at the point where the data is stored.
+
+Later, when handling a different HTTP request, the application retrieves the stored data and incorporates it into a SQL query in an unsafe way.
 
 ![](https://i.imgur.com/hHXgz6V.png)
 
-Second-order SQL injection often arises in situations where developers are aware of SQL injection vulnerabilities, and so safely handle the initial placement of the input into the database. When the data is later processed, it is deemed to be safe, since it was previously placed into the database safely. At this point, the data is handled in an unsafe way, because the developer wrongly deems it to be trusted.
+Second-order SQL injection often arises in situations where developers are aware of SQL injection vulnerabilities, and so safely handle the initial placement of the input into the database.
+
+When the data is later processed, it is deemed to be safe, since it was previously placed into the database safely.
+
+At this point, the data is handled in an unsafe way, because the developer wrongly deems it to be trusted.
 
 ### Database-specific factors
 
@@ -421,14 +419,14 @@ However, there are also many differences between common databases. These mean th
 
 Most instances of SQL injection can be prevented by using parameterized queries (also known as prepared statements) instead of string concatenation within the query.
 
-通过使用参数化查询（也被称为预处理语句）而不是在查询中拼接字符串，可以预防大部分的SQL注入。
+通过使用参数化查询（也被称为预处理语句）而不是在查询中拼接字符串，可以预防大部分 SQL 注入。
 
 The following code is vulnerable to SQL injection because the user input is concatenated directly into the query:
 
-下列代码存在SQL注入漏洞，因为用户的输入被直接地拼接到了查询中。
+下列代码存在 SQL 注入漏洞，因为用户的输入被直接地拼接到了查询中。
 
 ```
-String query = "SELECT * FROM products WHERE category = '"+ input + "'"; Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(query);
+ String query = "SELECT * FROM products WHERE category = '"+ input + "'"; Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(query);
 ```
 
 This code can be easily rewritten in a way that prevents the user input from interfering with the query structure:
@@ -436,12 +434,12 @@ This code can be easily rewritten in a way that prevents the user input from int
 可以轻松地重写上述代码并使得其能够预防用户输入干扰查询结构。
 
 ```
-PreparedStatement statement = connection.prepareStatement("SELECT * FROM products WHERE category = ?"); statement.setString(1, input); ResultSet resultSet = statement.executeQuery();
+ PreparedStatement statement = connection.prepareStatement("SELECT * FROM products WHERE category = ?"); statement.setString(1, input); ResultSet resultSet = statement.executeQuery();
 ```
 
 Parameterized queries can be used for any situation where untrusted input appears as data within the query, including the `WHERE` clause and values in an `INSERT` or `UPDATE` statement.
 
-只要不可信的输入出现在查询的数据部分，那么就可以使用参数化查询，包括`WHERE`子句以及`INSET`或`UPDATE`子句中的值部分。
+**只要不可信的输入出现在查询的数据部分，那么就可以使用参数化查询**，包括`WHERE`子句以及`INSET`或`UPDATE`子句中的值部分。
 
 They can't be used to handle untrusted input in other parts of the query, such as table or column names, or the `ORDER BY` clause.
 
@@ -453,7 +451,7 @@ Application functionality that places untrusted data into those parts of the que
 
 For a parameterized query to be effective in preventing SQL injection, the string that is used in the query must always be a hard-coded constant, and must never contain any variable data from any origin.
 
-为了使参数化查询能有效的预防SQL注入，查询中的字符串必须是硬编码的常量并且一定不能包含来自任意源的可变数据。
+为了使参数化查询能有效的预防 SQL 注入，查询中的字符串必须是硬编码的常量并且一定不能包含来自任意源的可变数据。
 
 Do not be tempted to decide case-by-case whether an item of data is trusted, and continue using string concatenation within the query for cases that are considered safe.
 
