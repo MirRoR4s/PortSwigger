@@ -28,13 +28,13 @@ extra_requirements = {
 extra_requirements["dev"] += extra_requirements["docs"]
 
 setup(
-    name="CTF",
+    name="PortSwigger",
     version="0.1.0",
-    description="My CTF's Study Record",
+    description="My PortSwigger's Study Record",
     long_description_content_type="text/x-rst",
-    maintainer="Joshua Pereyda",
-    maintainer_email="joshua.t.pereyda@gmail.com",
-    url="https://github.com/MirRoR4s/CTF.git",
+    maintainer="MirROR4s",
+    maintainer_email="mirror4s@birkenwald.cn",
+    url="https://github.com/MirRoR4s/PortSwigger.git",
     packages=find_packages(exclude=["docs"]),
     install_requires=[
         "attrs",
