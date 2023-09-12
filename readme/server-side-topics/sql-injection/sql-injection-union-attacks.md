@@ -1,2 +1,0 @@
-# SQL injection UNION attacks
-
