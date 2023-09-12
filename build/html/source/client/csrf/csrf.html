@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cross-site request forgery (CSRF) &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../server/race_conditions.html">条件竞争</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../xss/cross-site-scripting.html">Cross-site scripting</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Cross-site request forgery (CSRF)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/client/csrf/csrf.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cross-site-request-forgery-csrf">
+<h1>Cross-site request forgery (CSRF)<a class="headerlink" href="#cross-site-request-forgery-csrf" title="Permalink to this heading"></a></h1>
+<p>In this section, we’ll explain what cross-site request forgery is, describe some examples of common CSRF vulnerabilities, and explain how to prevent CSRF attacks.</p>
+<section id="what-is-csrf">
+<h2>What is CSRF?<a class="headerlink" href="#what-is-csrf" title="Permalink to this heading"></a></h2>
+<p>Cross-site request forgery (also known as CSRF) is a web security vulnerability that allows an attacker to induce users to perform actions that they do not intend to perform. It allows an attacker to partly circumvent the same origin policy, which is designed to prevent different websites from interfering with each other.</p>
+<p><img alt="image-20230912164424939" src="../../../_images/image-20230912164424939.png" /></p>
+<section id="labs">
+<h3>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h3>
+<p>If you’re already familiar with the basic concepts behind CSRF vulnerabilities and just want to practice exploiting them on some realistic, deliberately vulnerable targets, you can access all of the labs in this topic from the link below.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/all-labs#cross-site-request-forgery-csrf">View all CSRF labs</a></p></li>
+</ul>
+</section>
+</section>
+<section id="what-is-the-impact-of-a-csrf-attack">
+<h2>What is the impact of a CSRF attack?<a class="headerlink" href="#what-is-the-impact-of-a-csrf-attack" title="Permalink to this heading"></a></h2>
+<p>In a successful CSRF attack, the attacker causes the victim user to carry out an action unintentionally. For example, this might be to change the email address on their account, to change their password, or to make a funds transfer. Depending on the nature of the action, the attacker might be able to gain full control over the user’s account. If the compromised user has a privileged role within the application, then the attacker might be able to take full control of all the application’s data and functionality.</p>
+</section>
+<section id="how-does-csrf-work">
+<h2>How does CSRF work?<a class="headerlink" href="#how-does-csrf-work" title="Permalink to this heading"></a></h2>
+<p>For a CSRF attack to be possible, three key conditions must be in place:</p>
+<ul class="simple">
+<li><p><strong>A relevant action.</strong> There is an action within the application that the attacker has a reason to induce. This might be a privileged action (such as modifying permissions for other users) or any action on user-specific data (such as changing the user’s own password).</p></li>
+<li><p><strong>Cookie-based session handling.</strong> Performing the action involves issuing one or more HTTP requests, and the application relies solely on session cookies to identify the user who has made the requests. There is no other mechanism in place for tracking sessions or validating user requests.</p></li>
+<li><p><strong>No unpredictable request parameters.</strong> The requests that perform the action do not contain any parameters whose values the attacker cannot determine or guess. For example, when causing a user to change their password, the function is not vulnerable if an attacker needs to know the value of the existing password.</p></li>
+</ul>
+<p>For example, suppose an application contains a function that lets the user change the email address on their account. When a user performs this action, they make an HTTP request like the following:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/email/change</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">vulnerable-website.com</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/x-www-form-urlencoded</span>
+<span class="na">Content-Length</span><span class="o">:</span> <span class="l">30</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=yvthwsztyeQkAPzeQ5gHgTvlyxHfsAfE</span>
+
+<span class="nt">email</span><span class="o">=</span><span class="s">wiener@normal-user.com</span>
+</pre></div>
+</div>
+<p>This meets the conditions required for CSRF:</p>
+<ul class="simple">
+<li><p>The action of changing the email address on a user’s account is of interest to an attacker. Following this action, the attacker will typically be able to trigger a password reset and take full control of the user’s account.</p></li>
+<li><p>The application uses a session cookie to identify which user issued the request. There are no other tokens or mechanisms in place to track user sessions.</p></li>
+<li><p>The attacker can easily determine the values of the request parameters that are needed to perform the action.</p></li>
+</ul>
+<p>With these conditions in place, the attacker can construct a web page containing the following HTML:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">html</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">form</span> <span class="na">action</span><span class="o">=</span><span class="s">&quot;https://vulnerable-website.com/email/change&quot;</span> <span class="na">method</span><span class="o">=</span><span class="s">&quot;POST&quot;</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">input</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;hidden&quot;</span> <span class="na">name</span><span class="o">=</span><span class="s">&quot;email&quot;</span> <span class="na">value</span><span class="o">=</span><span class="s">&quot;pwned@evil-user.net&quot;</span> <span class="p">/&gt;</span>
+        <span class="p">&lt;/</span><span class="nt">form</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="w">            </span><span class="nb">document</span><span class="p">.</span><span class="nx">forms</span><span class="p">[</span><span class="mf">0</span><span class="p">].</span><span class="nx">submit</span><span class="p">();</span>
+<span class="w">        </span><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p>If a victim user visits the attacker’s web page, the following will happen:</p>
+<ul class="simple">
+<li><p>The attacker’s page will trigger an HTTP request to the vulnerable web site.</p></li>
+<li><p>If the user is logged in to the vulnerable web site, their browser will automatically include their session cookie in the request (assuming <a class="reference external" href="https://portswigger.net/web-security/csrf#common-defences-against-csrf">SameSite cookies</a> are not being used).</p></li>
+<li><p>The vulnerable web site will process the request in the normal way, treat it as having been made by the victim user, and change their email address.</p></li>
+</ul>
+<p><strong>Note</strong></p>
+<p>Although CSRF is normally described in relation to cookie-based session handling, it also arises in other contexts where the application automatically adds some user credentials to requests, such as HTTP Basic authentication and certificate-based authentication.</p>
+</section>
+<section id="how-to-construct-a-csrf-attack">
+<h2>How to construct a CSRF attack<a class="headerlink" href="#how-to-construct-a-csrf-attack" title="Permalink to this heading"></a></h2>
+<p>Manually creating the HTML needed for a CSRF exploit can be cumbersome, particularly where the desired request contains a large number of parameters, or there are other quirks in the request. The easiest way to construct a CSRF exploit is using the <a class="reference external" href="https://portswigger.net/burp/documentation/desktop/tools/engagement-tools/generate-csrf-poc">CSRF PoC generator</a> that is built in to <a class="reference external" href="https://portswigger.net/burp/pro">Burp Suite Professional</a>:</p>
+<ul class="simple">
+<li><p>Select a request anywhere in Burp Suite Professional that you want to test or exploit.</p></li>
+<li><p>From the right-click context menu, select Engagement tools / Generate CSRF PoC.</p></li>
+<li><p>Burp Suite will generate some HTML that will trigger the selected request (minus cookies, which will be added automatically by the victim’s browser).</p></li>
+<li><p>You can tweak various options in the CSRF PoC generator to fine-tune aspects of the attack. You might need to do this in some unusual situations to deal with quirky features of requests.</p></li>
+<li><p>Copy the generated HTML into a web page, view it in a browser that is logged in to the vulnerable web site, and test whether the intended request is issued successfully and the desired action occurs.</p></li>
+</ul>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/csrf/lab-no-defenses">CSRF vulnerability with no defenses</a></p>
+</section>
+<section id="how-to-deliver-a-csrf-exploit">
+<h2>How to deliver a CSRF exploit<a class="headerlink" href="#how-to-deliver-a-csrf-exploit" title="Permalink to this heading"></a></h2>
+<p>The delivery mechanisms for cross-site request forgery attacks are essentially the same as for <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/reflected">reflected XSS</a>. Typically, the attacker will place the malicious HTML onto a web site that they control, and then induce victims to visit that web site. This might be done by feeding the user a link to the web site, via an email or social media message. Or if the attack is placed into a popular web site (for example, in a user comment), they might just wait for users to visit the web site.</p>
+<p>Note that some simple CSRF exploits employ the GET method and can be fully self-contained with a single URL on the vulnerable web site. In this situation, the attacker may not need to employ an external site, and can directly feed victims a malicious URL on the vulnerable domain. In the preceding example, if the request to change email address can be performed with the GET method, then a self-contained attack would look like this:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">img</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://vulnerable-website.com/email/change?email=pwned@evil-user.net&quot;</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p><strong>Read more</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/csrf/xss-vs-csrf">XSS vs CSRF</a></p></li>
+</ul>
+</section>
+<section id="common-defences-against-csrf">
+<h2>Common defences against CSRF<a class="headerlink" href="#common-defences-against-csrf" title="Permalink to this heading"></a></h2>
+<p>Nowadays, successfully finding and exploiting CSRF vulnerabilities often involves bypassing anti-CSRF measures deployed by the target website, the victim’s browser, or both. The most common defenses you’ll encounter are as follows:</p>
+<ul class="simple">
+<li><p><strong>CSRF tokens</strong> - A CSRF token is a unique, secret, and unpredictable value that is generated by the server-side application and shared with the client. When attempting to perform a sensitive action, such as submitting a form, the client must include the correct CSRF token in the request. This makes it very difficult for an attacker to construct a valid request on behalf of the victim.</p></li>
+<li><p><strong>SameSite cookies</strong> - SameSite is a browser security mechanism that determines when a website’s cookies are included in requests originating from other websites. As requests to perform sensitive actions typically require an authenticated session cookie, the appropriate SameSite restrictions may prevent an attacker from triggering these actions cross-site. Since 2021, Chrome enforces <code class="docutils literal notranslate"><span class="pre">Lax</span></code> SameSite restrictions by default. As this is the proposed standard, we expect other major browsers to adopt this behavior in future.</p></li>
+<li><p><strong>Referer-based validation</strong> - Some applications make use of the HTTP Referer header to attempt to defend against CSRF attacks, normally by verifying that the request originated from the application’s own domain. This is generally less effective than CSRF token validation.</p></li>
+</ul>
+<p>For a more detailed description of each of these defenses, as well as how they can potentially be bypassed, check out the following materials. These include interactive labs that let you practice what you’ve learned on realistic, deliberately vulnerable targets.</p>
+<p><strong>Read more</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-token-validation">LABS Bypassing CSRF token validation</a></p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions">LABS Bypassing SameSite cookie restrictions</a></p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-referer-based-defenses">LABS Bypassing Referer-based CSRF defenses</a></p></li>
+</ul>
+<p>For details on how to properly implement these defenses in order to prevent some of these issues on your own websites, see <a class="reference external" href="https://portswigger.net/web-security/csrf/preventing">How to prevent CSRF vulnerabilities</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

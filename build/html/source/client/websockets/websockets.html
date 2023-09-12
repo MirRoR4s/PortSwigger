@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Testing for WebSockets security vulnerabilities &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../server/race_conditions.html">条件竞争</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../xss/cross-site-scripting.html">Cross-site scripting</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Testing for WebSockets security vulnerabilities</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/client/websockets/websockets.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="testing-for-websockets-security-vulnerabilities">
+<h1>Testing for WebSockets security vulnerabilities<a class="headerlink" href="#testing-for-websockets-security-vulnerabilities" title="Permalink to this heading"></a></h1>
+<p>In this section, we’ll explain how to manipulate WebSocket messages and connections, describe the kinds of security vulnerabilities that can arise with WebSockets, and give some examples of exploiting WebSockets vulnerabilities.</p>
+<section id="websockets">
+<h2>WebSockets<a class="headerlink" href="#websockets" title="Permalink to this heading"></a></h2>
+<p>WebSockets are widely used in modern web applications. They are initiated over HTTP and provide long-lived connections with asynchronous communication in both directions.</p>
+<p>WebSockets are used for all kinds of purposes, including performing user actions and transmitting sensitive information. Virtually any web security vulnerability that arises with regular HTTP can also arise in relation to WebSockets communications.</p>
+<section id="read-more">
+<h3>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/websockets/what-are-websockets">What are WebSockets?</a></p></li>
+</ul>
+<p><img alt="WebSockets" src="https://portswigger.net/web-security/images/websockets.svg" /></p>
+</section>
+<section id="labs">
+<h3>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h3>
+<p>If you’re already familiar with the basic concepts behind WebSockets vulnerabilities and just want to practice exploiting them on some realistic, deliberately vulnerable targets, you can access all of the labs in this topic from the link below.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/all-labs#websockets">View all WebSockets labs</a></p></li>
+</ul>
+</section>
+</section>
+<section id="manipulating-websocket-traffic">
+<h2>Manipulating WebSocket traffic<a class="headerlink" href="#manipulating-websocket-traffic" title="Permalink to this heading"></a></h2>
+<p>Finding WebSockets security vulnerabilities generally involves manipulating them in ways that the application doesn’t expect. You can do this using Burp Suite.</p>
+<p>You can use Burp Suite to:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/websockets#intercepting-and-modifying-websocket-messages">Intercept and modify WebSocket messages.</a></p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/websockets#replaying-and-generating-new-websocket-messages">Replay and generate new WebSocket messages.</a></p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/websockets#manipulating-websocket-connections">Manipulate WebSocket connections.</a></p></li>
+</ul>
+<section id="intercepting-and-modifying-websocket-messages">
+<h3>Intercepting and modifying WebSocket messages<a class="headerlink" href="#intercepting-and-modifying-websocket-messages" title="Permalink to this heading"></a></h3>
+<p>You can use Burp Proxy to intercept and modify WebSocket messages, as follows:</p>
+<ul class="simple">
+<li><p>Open Burp’s browser.</p></li>
+<li><p>Browse to the application function that uses WebSockets. You can determine that WebSockets are being used by using the application and looking for entries appearing in the WebSockets history tab within Burp Proxy.</p></li>
+<li><p>In the Intercept tab of Burp Proxy, ensure that interception is turned on.</p></li>
+<li><p>When a WebSocket message is sent from the browser or server, it will be displayed in the Intercept tab for you to view or modify. Press the Forward button to forward the message.</p></li>
+</ul>
+<section id="note">
+<h4>Note<a class="headerlink" href="#note" title="Permalink to this heading"></a></h4>
+<p>You can configure whether client-to-server or server-to-client messages are intercepted in Burp Proxy. Do this in the Settings dialog, in the <a class="reference external" href="https://portswigger.net/burp/documentation/desktop/settings/tools/proxy#websocket-interception-rules">WebSocket interception rules</a> settings.</p>
+</section>
+</section>
+<section id="replaying-and-generating-new-websocket-messages">
+<h3>Replaying and generating new WebSocket messages<a class="headerlink" href="#replaying-and-generating-new-websocket-messages" title="Permalink to this heading"></a></h3>
+<p>As well as intercepting and modifying WebSocket messages on the fly, you can replay individual messages and generate new messages. You can do this using Burp Repeater:</p>
+<ul class="simple">
+<li><p>In Burp Proxy, select a message in the WebSockets history, or in the Intercept tab, and choose “Send to Repeater” from the context menu.</p></li>
+<li><p>In Burp Repeater, you can now edit the message that was selected, and send it over and over.</p></li>
+<li><p>You can enter a new message and send it in either direction, to the client or server.</p></li>
+<li><p>In the “History” panel within Burp Repeater, you can view the history of messages that have been transmitted over the WebSocket connection. This includes messages that you have generated in Burp Repeater, and also any that were generated by the browser or server via the same connection.</p></li>
+<li><p>If you want to edit and resend any message in the history panel, you can do this by selecting the message and choosing “Edit and resend” from the context menu.</p></li>
+</ul>
+</section>
+<section id="manipulating-websocket-connections">
+<h3>Manipulating WebSocket connections<a class="headerlink" href="#manipulating-websocket-connections" title="Permalink to this heading"></a></h3>
+<p>As well as manipulating WebSocket messages, it is sometimes necessary to manipulate the <a class="reference external" href="https://portswigger.net/web-security/websockets/what-are-websockets#how-are-websocket-connections-established">WebSocket handshake</a> that establishes the connection.</p>
+<p>There are various situations in which manipulating the WebSocket handshake might be necessary:</p>
+<ul class="simple">
+<li><p>It can enable you to reach more attack surface.</p></li>
+<li><p>Some attacks might cause your connection to drop so you need to establish a new one.</p></li>
+<li><p>Tokens or other data in the original handshake request might be stale and need updating.</p></li>
+</ul>
+<p>You can manipulate the WebSocket handshake using Burp Repeater:</p>
+<ul class="simple">
+<li><p>Send a WebSocket message to Burp Repeater as <a class="reference external" href="https://portswigger.net/web-security/websockets#replaying-and-generating-new-websocket-messages">already described</a>.</p></li>
+<li><p>In Burp Repeater, click on the pencil icon next to the WebSocket URL. This opens a wizard that lets you attach to an existing connected WebSocket, clone a connected WebSocket, or reconnect to a disconnected WebSocket.</p></li>
+<li><p>If you choose to clone a connected WebSocket or reconnect to a disconnected WebSocket, then the wizard will show full details of the WebSocket handshake request, which you can edit as required before the handshake is performed.</p></li>
+<li><p>When you click “Connect”, Burp will attempt to carry out the configured handshake and display the result. If a new WebSocket connection was successfully established, you can then use this to send new messages in Burp Repeater.</p></li>
+</ul>
+</section>
+</section>
+<section id="websockets-security-vulnerabilities">
+<h2>WebSockets security vulnerabilities<a class="headerlink" href="#websockets-security-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>In principle, practically any web security vulnerability might arise in relation to WebSockets:</p>
+<ul class="simple">
+<li><p>User-supplied input transmitted to the server might be processed in unsafe ways, leading to vulnerabilities such as <a class="reference external" href="https://portswigger.net/web-security/sql-injection">SQL injection</a> or XML external entity injection.</p></li>
+<li><p>Some blind vulnerabilities reached via WebSockets might only be detectable using <a class="reference external" href="https://portswigger.net/blog/oast-out-of-band-application-security-testing">out-of-band (OAST) techniques</a>.</p></li>
+<li><p>If attacker-controlled data is transmitted via WebSockets to other application users, then it might lead to <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting">XSS</a> or other client-side vulnerabilities.</p></li>
+</ul>
+<section id="manipulating-websocket-messages-to-exploit-vulnerabilities">
+<h3>Manipulating WebSocket messages to exploit vulnerabilities<a class="headerlink" href="#manipulating-websocket-messages-to-exploit-vulnerabilities" title="Permalink to this heading"></a></h3>
+<p>The majority of input-based vulnerabilities affecting WebSockets can be found and exploited by <a class="reference external" href="https://portswigger.net/web-security/websockets#intercepting-and-modifying-websocket-messages">tampering with the contents of WebSocket messages</a>.</p>
+<p>For example, suppose a chat application uses WebSockets to send chat messages between the browser and the server. When a user types a chat message, a WebSocket message like the following is sent to the server:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span><span class="s2">&quot;Hello Carlos&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>The contents of the message are transmitted (again via WebSockets) to another chat user, and rendered in the user’s browser as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">Hello</span> <span class="n">Carlos</span><span class="o">&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>In this situation, provided no other input processing or defenses are in play, an attacker can perform a proof-of-concept XSS attack by submitting the following WebSocket message:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span><span class="s2">&quot;&lt;img src=1 onerror=&#39;alert(1)&#39;&gt;&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>LAB</strong></p>
+<p>APPRENTICE<a class="reference external" href="https://portswigger.net/web-security/websockets/lab-manipulating-messages-to-exploit-vulnerabilities">Manipulating WebSocket messages to exploit vulnerabilities</a></p>
+</section>
+<section id="manipulating-the-websocket-handshake-to-exploit-vulnerabilities">
+<h3>Manipulating the WebSocket handshake to exploit vulnerabilities<a class="headerlink" href="#manipulating-the-websocket-handshake-to-exploit-vulnerabilities" title="Permalink to this heading"></a></h3>
+<p>Some WebSockets vulnerabilities can only be found and exploited by <a class="reference external" href="https://portswigger.net/web-security/websockets#manipulating-websocket-connections">manipulating the WebSocket handshake</a>. These vulnerabilities tend to involve design flaws, such as:</p>
+<ul class="simple">
+<li><p>Misplaced trust in HTTP headers to perform security decisions, such as the <code class="docutils literal notranslate"><span class="pre">X-Forwarded-For</span></code> header.</p></li>
+<li><p>Flaws in session handling mechanisms, since the session context in which WebSocket messages are processed is generally determined by the session context of the handshake message.</p></li>
+<li><p>Attack surface introduced by custom HTTP headers used by the application.</p></li>
+</ul>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/websockets/lab-manipulating-handshake-to-exploit-vulnerabilities">Manipulating the WebSocket handshake to exploit vulnerabilities</a></p>
+</section>
+<section id="using-cross-site-websockets-to-exploit-vulnerabilities">
+<h3>Using cross-site WebSockets to exploit vulnerabilities<a class="headerlink" href="#using-cross-site-websockets-to-exploit-vulnerabilities" title="Permalink to this heading"></a></h3>
+<p>Some WebSockets security vulnerabilities arise when an attacker makes a cross-domain WebSocket connection from a web site that the attacker controls. This is known as a <a class="reference external" href="https://portswigger.net/web-security/websockets/cross-site-websocket-hijacking">cross-site WebSocket hijacking</a> attack, and it involves exploiting a <a class="reference external" href="https://portswigger.net/web-security/csrf">cross-site request forgery</a> (<a class="reference external" href="https://portswigger.net/web-security/csrf">CSRF</a>) vulnerability on a WebSocket handshake. The attack often has a serious impact, allowing an attacker to perform privileged actions on behalf of the victim user or capture sensitive data to which the victim user has access.</p>
+<section id="id1">
+<h4>Read more<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h4>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/websockets/cross-site-websocket-hijacking">Cross-site WebSockets hijacking</a></p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="how-to-secure-a-websocket-connection">
+<h2>How to secure a WebSocket connection<a class="headerlink" href="#how-to-secure-a-websocket-connection" title="Permalink to this heading"></a></h2>
+<p>To minimize the risk of security vulnerabilities arising with WebSockets, use the following guidelines:</p>
+<ul class="simple">
+<li><p>Use the <code class="docutils literal notranslate"><span class="pre">wss://</span></code> protocol (WebSockets over TLS).</p></li>
+<li><p>Hard code the URL of the WebSockets endpoint, and certainly don’t incorporate user-controllable data into this URL.</p></li>
+<li><p>Protect the WebSocket handshake message against CSRF, to avoid cross-site WebSockets hijacking vulnerabilities.</p></li>
+<li><p>Treat data received via the WebSocket as untrusted in both directions. Handle data safely on both the server and client ends, to prevent input-based vulnerabilities such as SQL injection and <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting">cross-site scripting</a>.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

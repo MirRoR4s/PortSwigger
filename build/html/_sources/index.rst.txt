@@ -10,13 +10,16 @@ PortSwigger 学习指南
    :maxdepth: 2
    :caption: 服务端
 
-   server/race_conditions
+   source/server/race_conditions
 
 .. toctree::
    :maxdepth: 2
    :caption: 客户端
    
-   client/csrf.rst
+   
+   source/client/xss/cross-site-scripting
+   source/client/csrf/csrf
+   source/client/cors/cors
 
 
 索引

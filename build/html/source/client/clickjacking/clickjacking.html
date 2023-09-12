@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clickjacking (UI redressing) &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../server/race_conditions.html">条件竞争</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../xss/cross-site-scripting.html">Cross-site scripting</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Clickjacking (UI redressing)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/client/clickjacking/clickjacking.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="clickjacking-ui-redressing">
+<h1>Clickjacking (UI redressing)<a class="headerlink" href="#clickjacking-ui-redressing" title="Permalink to this heading"></a></h1>
+<p>In this section we will explain what clickjacking is, describe common examples of clickjacking attacks and discuss how to protect against these attacks.</p>
+<section id="what-is-clickjacking">
+<h2>What is clickjacking?<a class="headerlink" href="#what-is-clickjacking" title="Permalink to this heading"></a></h2>
+<p>Clickjacking is an interface-based attack in which a user is tricked into clicking on actionable content on a hidden website by clicking on some other content in a decoy website. Consider the following example:</p>
+<p>A web user accesses a decoy website (perhaps this is a link provided by an email) and clicks on a button to win a prize. Unknowingly, they have been deceived by an attacker into pressing an alternative hidden button and this results in the payment of an account on another site. This is an example of a clickjacking attack. The technique depends upon the incorporation of an invisible, actionable web page (or multiple pages) containing a button or hidden link, say, within an iframe. The iframe is overlaid on top of the user’s anticipated decoy web page content. This attack differs from a <a class="reference external" href="https://portswigger.net/web-security/csrf">CSRF</a> attack in that the user is required to perform an action such as a button click whereas a <a class="reference external" href="https://portswigger.net/web-security/csrf">CSRF attack</a> depends upon forging an entire request without the user’s knowledge or input.</p>
+<p><img alt="image-20230912164125773" src="../../../_images/image-20230912164125773.png" /></p>
+<p>Protection against CSRF attacks is often provided by the use of a <a class="reference external" href="https://portswigger.net/web-security/csrf#common-defences-against-csrf">CSRF token</a>: a session-specific, single-use number or nonce. Clickjacking attacks are not mitigated by the CSRF token as a target session is established with content loaded from an authentic website and with all requests happening on-domain. CSRF tokens are placed into requests and passed to the server as part of a normally behaved session. The difference compared to a normal user session is that the process occurs within a hidden iframe.</p>
+<section id="labs">
+<h3>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h3>
+<p>If you’re already familiar with the basic concepts behind clickjacking vulnerabilities and just want to practice exploiting them on some realistic, deliberately vulnerable targets, you can access all of the labs in this topic from the link below.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/all-labs#clickjacking">View all clickjacking labs</a></p></li>
+</ul>
+</section>
+</section>
+<section id="how-to-construct-a-basic-clickjacking-attack">
+<h2>How to construct a basic clickjacking attack<a class="headerlink" href="#how-to-construct-a-basic-clickjacking-attack" title="Permalink to this heading"></a></h2>
+<p>Clickjacking attacks use CSS to create and manipulate layers. The attacker incorporates the target website as an iframe layer overlaid on the decoy website. An example using the style tag and parameters is as follows:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+	<span class="p">&lt;</span><span class="nt">style</span><span class="p">&gt;</span>
+<span class="w">		</span><span class="p">#</span><span class="nn">target_website</span><span class="w"> </span><span class="p">{</span>
+<span class="w">			</span><span class="k">position</span><span class="p">:</span><span class="kc">relative</span><span class="p">;</span>
+<span class="w">			</span><span class="k">width</span><span class="p">:</span><span class="mi">128</span><span class="kt">px</span><span class="p">;</span>
+<span class="w">			</span><span class="k">height</span><span class="p">:</span><span class="mi">128</span><span class="kt">px</span><span class="p">;</span>
+<span class="w">			</span><span class="k">opacity</span><span class="p">:</span><span class="mf">0.00001</span><span class="p">;</span>
+<span class="w">			</span><span class="k">z-index</span><span class="p">:</span><span class="mi">2</span><span class="p">;</span>
+<span class="w">			</span><span class="p">}</span>
+<span class="w">		</span><span class="p">#</span><span class="nn">decoy_website</span><span class="w"> </span><span class="p">{</span>
+<span class="w">			</span><span class="k">position</span><span class="p">:</span><span class="kc">absolute</span><span class="p">;</span>
+<span class="w">			</span><span class="k">width</span><span class="p">:</span><span class="mi">300</span><span class="kt">px</span><span class="p">;</span>
+<span class="w">			</span><span class="k">height</span><span class="p">:</span><span class="mi">400</span><span class="kt">px</span><span class="p">;</span>
+<span class="w">			</span><span class="k">z-index</span><span class="p">:</span><span class="mi">1</span><span class="p">;</span>
+<span class="w">			</span><span class="p">}</span>
+<span class="w">	</span><span class="p">&lt;/</span><span class="nt">style</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+...
+<span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+	<span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;decoy_website&quot;</span><span class="p">&gt;</span>
+	...decoy web content here...
+	<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+	<span class="p">&lt;</span><span class="nt">iframe</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;target_website&quot;</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://vulnerable-website.com&quot;</span><span class="p">&gt;</span>
+	<span class="p">&lt;/</span><span class="nt">iframe</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p>The target website iframe is positioned within the browser so that there is a precise overlap of the target action with the decoy website using appropriate width and height position values. Absolute and relative position values are used to ensure that the target website accurately overlaps the decoy regardless of screen size, browser type and platform. The z-index determines the stacking order of the iframe and website layers. The opacity value is defined as 0.0 (or close to 0.0) so that the iframe content is transparent to the user. Browser clickjacking protection might apply threshold-based iframe transparency detection (for example, Chrome version 76 includes this behavior but Firefox does not). The attacker selects opacity values so that the desired effect is achieved without triggering protection behaviors.</p>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/clickjacking/lab-basic-csrf-protected">Basic clickjacking with CSRF token protection</a></p>
+<section id="clickbandit">
+<h3>Clickbandit<a class="headerlink" href="#clickbandit" title="Permalink to this heading"></a></h3>
+<p>Although you can manually create a clickjacking proof of concept as described above, this can be fairly tedious and time-consuming in practice. When you’re testing for clickjacking in the wild, we recommend using Burp’s <a class="reference external" href="https://portswigger.net/burp/documentation/desktop/tools/clickbandit">Clickbandit</a> tool instead. This lets you use your browser to perform the desired actions on the frameable page, then creates an HTML file containing a suitable clickjacking overlay. You can use this to generate an interactive proof of concept in a matter of seconds, without having to write a single line of HTML or CSS.</p>
+</section>
+</section>
+<section id="clickjacking-with-prefilled-form-input">
+<h2>Clickjacking with prefilled form input<a class="headerlink" href="#clickjacking-with-prefilled-form-input" title="Permalink to this heading"></a></h2>
+<p>Some websites that require form completion and submission permit prepopulation of form inputs using GET parameters prior to submission. Other websites might require text before form submission. As GET values form part of the URL then the target URL can be modified to incorporate values of the attacker’s choosing and the transparent “submit” button is overlaid on the decoy site as in the basic clickjacking example.</p>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/clickjacking/lab-prefilled-form-input">Clickjacking with form input data prefilled from a URL parameter</a></p>
+</section>
+<section id="frame-busting-scripts">
+<h2>Frame busting scripts<a class="headerlink" href="#frame-busting-scripts" title="Permalink to this heading"></a></h2>
+<p>Clickjacking attacks are possible whenever websites can be framed. Therefore, preventative techniques are based upon restricting the framing capability for websites. A common client-side protection enacted through the web browser is to use frame busting or frame breaking scripts. These can be implemented via proprietary browser JavaScript add-ons or extensions such as NoScript. Scripts are often crafted so that they perform some or all of the following behaviors:</p>
+<ul class="simple">
+<li><p>check and enforce that the current application window is the main or top window,</p></li>
+<li><p>make all frames visible,</p></li>
+<li><p>prevent clicking on invisible frames,</p></li>
+<li><p>intercept and flag potential clickjacking attacks to the user.</p></li>
+</ul>
+<p>Frame busting techniques are often browser and platform specific and because of the flexibility of HTML they can usually be circumvented by attackers. As frame busters are JavaScript then the browser’s security settings may prevent their operation or indeed the browser might not even support JavaScript. An effective attacker workaround against frame busters is to use the HTML5 iframe <code class="docutils literal notranslate"><span class="pre">sandbox</span></code> attribute. When this is set with the <code class="docutils literal notranslate"><span class="pre">allow-forms</span></code> or <code class="docutils literal notranslate"><span class="pre">allow-scripts</span></code> values and the <code class="docutils literal notranslate"><span class="pre">allow-top-navigation</span></code> value is omitted then the frame buster script can be neutralized as the iframe cannot check whether or not it is the top window:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">iframe</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;victim_website&quot;</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://victim-website.com&quot;</span> <span class="na">sandbox</span><span class="o">=</span><span class="s">&quot;allow-forms&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">iframe</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p>Both the <code class="docutils literal notranslate"><span class="pre">allow-forms</span></code> and <code class="docutils literal notranslate"><span class="pre">allow-scripts</span></code> values permit the specified actions within the iframe but top-level navigation is disabled. This inhibits frame busting behaviors while allowing functionality within the targeted site.</p>
+<p><strong>LAB</strong></p>
+<p>APPRENTICE<a class="reference external" href="https://portswigger.net/web-security/clickjacking/lab-frame-buster-script">Clickjacking with a frame buster script</a></p>
+</section>
+<section id="combining-clickjacking-with-a-dom-xss-attack">
+<h2>Combining clickjacking with a DOM XSS attack<a class="headerlink" href="#combining-clickjacking-with-a-dom-xss-attack" title="Permalink to this heading"></a></h2>
+<p>So far, we have looked at clickjacking as a self-contained attack. Historically, clickjacking has been used to perform behaviors such as boosting “likes” on a Facebook page. However, the true potency of clickjacking is revealed when it is used as a carrier for another attack such as a <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/dom-based">DOM XSS</a> attack. Implementation of this combined attack is relatively straightforward assuming that the attacker has first identified the <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting">XSS</a> exploit. The XSS exploit is then combined with the iframe target URL so that the user clicks on the button or link and consequently executes the DOM XSS attack.</p>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/clickjacking/lab-exploiting-to-trigger-dom-based-xss">Exploiting clickjacking vulnerability to trigger DOM-based XSS</a></p>
+</section>
+<section id="multistep-clickjacking">
+<h2>Multistep clickjacking<a class="headerlink" href="#multistep-clickjacking" title="Permalink to this heading"></a></h2>
+<p>Attacker manipulation of inputs to a target website may necessitate multiple actions. For example, an attacker might want to trick a user into buying something from a retail website so items need to be added to a shopping basket before the order is placed. These actions can be implemented by the attacker using multiple divisions or iframes. Such attacks require considerable precision and care from the attacker perspective if they are to be effective and stealthy.</p>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/clickjacking/lab-multistep">Multistep clickjacking</a></p>
+</section>
+<section id="how-to-prevent-clickjacking-attacks">
+<h2>How to prevent clickjacking attacks<a class="headerlink" href="#how-to-prevent-clickjacking-attacks" title="Permalink to this heading"></a></h2>
+<p>We have discussed a commonly encountered browser-side prevention mechanism, namely frame busting scripts. However, we have seen that it is often straightforward for an attacker to circumvent these protections. Consequently, server driven protocols have been devised that constrain browser iframe usage and mitigate against clickjacking.</p>
+<p>Clickjacking is a browser-side behavior and its success or otherwise depends upon browser functionality and conformity to prevailing web standards and best practice. Server-side protection against clickjacking is provided by defining and communicating constraints over the use of components such as iframes. However, implementation of protection depends upon browser compliance and enforcement of these constraints. Two mechanisms for server-side clickjacking protection are X-Frame-Options and <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/content-security-policy">Content Security Policy</a>.</p>
+<p><strong>Read more</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/burp/vulnerability-scanner">Find clickjacking vulnerabilities using Burp Suite’s web vulnerability scanner</a></p></li>
+</ul>
+<section id="x-frame-options">
+<h3>X-Frame-Options<a class="headerlink" href="#x-frame-options" title="Permalink to this heading"></a></h3>
+<p>X-Frame-Options was originally introduced as an unofficial response header in Internet Explorer 8 and it was rapidly adopted within other browsers. The header provides the website owner with control over the use of iframes or objects so that inclusion of a web page within a frame can be prohibited with the <code class="docutils literal notranslate"><span class="pre">deny</span></code> directive:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>X-Frame-Options: deny
+</pre></div>
+</div>
+<p>Alternatively, framing can be restricted to the same origin as the website using the <code class="docutils literal notranslate"><span class="pre">sameorigin</span></code> directive</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>X-Frame-Options: sameorigin
+</pre></div>
+</div>
+<p>or to a named website using the <code class="docutils literal notranslate"><span class="pre">allow-from</span></code> directive:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>X-Frame-Options: allow-from https://normal-website.com
+</pre></div>
+</div>
+<p>X-Frame-Options is not implemented consistently across browsers (the <code class="docutils literal notranslate"><span class="pre">allow-from</span></code> directive is not supported in Chrome version 76 or Safari 12 for example). However, when properly applied in conjunction with Content Security Policy as part of a multi-layer defense strategy it can provide effective protection against clickjacking attacks.</p>
+</section>
+<section id="content-security-policy-csp">
+<h3>Content Security Policy (<a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/content-security-policy">CSP</a>)<a class="headerlink" href="#content-security-policy-csp" title="Permalink to this heading"></a></h3>
+<p>Content Security Policy (CSP) is a detection and prevention mechanism that provides mitigation against attacks such as XSS and clickjacking. CSP is usually implemented in the web server as a return header of the form:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>Content-Security-Policy: policy
+</pre></div>
+</div>
+<p>where policy is a string of policy directives separated by semicolons. The CSP provides the client browser with information about permitted sources of web resources that the browser can apply to the detection and interception of malicious behaviors.</p>
+<p>The recommended clickjacking protection is to incorporate the <code class="docutils literal notranslate"><span class="pre">frame-ancestors</span></code> directive in the application’s Content Security Policy. The <code class="docutils literal notranslate"><span class="pre">frame-ancestors</span> <span class="pre">'none'</span></code> directive is similar in behavior to the X-Frame-Options <code class="docutils literal notranslate"><span class="pre">deny</span></code> directive. The <code class="docutils literal notranslate"><span class="pre">frame-ancestors</span> <span class="pre">'self'</span></code> directive is broadly equivalent to the X-Frame-Options <code class="docutils literal notranslate"><span class="pre">sameorigin</span></code> directive. The following CSP whitelists frames to the same domain only:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>Content-Security-Policy: frame-ancestors &#39;self&#39;;
+</pre></div>
+</div>
+<p>Alternatively, framing can be restricted to named sites:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>Content-Security-Policy: frame-ancestors normal-website.com;
+</pre></div>
+</div>
+<p>To be effective against clickjacking and XSS, CSPs need careful development, implementation and testing and should be used as part of a multi-layer defense strategy.</p>
+<p><strong>Read more</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/content-security-policy#protecting-against-clickjacking-using-csp">Protecting against clickjacking using CSP</a></p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
