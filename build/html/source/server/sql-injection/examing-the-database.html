@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Examining the database in SQL injection attacks &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">SQL injection</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../client/xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Examining the database in SQL injection attacks</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/server/sql-injection/examing-the-database.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="examining-the-database-in-sql-injection-attacks">
+<h1>Examining the database in SQL injection attacks<a class="headerlink" href="#examining-the-database-in-sql-injection-attacks" title="Permalink to this heading"></a></h1>
+<p>To exploit <a class="reference external" href="https://portswigger.net/web-security/sql-injection">SQL injection</a> vulnerabilities, it’s often necessary to find information about the database. This includes:</p>
+<ul class="simple">
+<li><p>The type and version of the database software.</p></li>
+<li><p>The tables and columns that the database contains.</p></li>
+</ul>
+<section id="querying-the-database-type-and-version">
+<h2>Querying the database type and version<a class="headerlink" href="#querying-the-database-type-and-version" title="Permalink to this heading"></a></h2>
+<p>You can potentially identify both the database type and version by injecting provider-specific queries to see if one works</p>
+<p>The following are some queries to determine the database version for some popular database types:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Database type</p></th>
+<th class="head"><p>Query</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Microsoft, MySQL</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">&#64;&#64;version</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Oracle</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">*</span> <span class="pre">FROM</span> <span class="pre">v$version</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>PostgreSQL</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">version()</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>For example, you could use a <code class="docutils literal notranslate"><span class="pre">UNION</span></code> attack with the following input:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span>&#39; UNION SELECT @@version--
+</pre></div>
+</div>
+<p>This might return the following output. In this case, you can confirm that the database is Microsoft SQL Server and see the version used:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="n">Microsoft</span><span class="w"> </span><span class="k">SQL</span><span class="w"> </span><span class="n">Server</span><span class="w"> </span><span class="mi">2016</span><span class="w"> </span><span class="p">(</span><span class="n">SP2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">KB4052908</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">13</span><span class="p">.</span><span class="mi">0</span><span class="p">.</span><span class="mi">5026</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="p">(</span><span class="n">X64</span><span class="p">)</span><span class="w"> </span><span class="n">Mar</span><span class="w"> </span><span class="mi">18</span><span class="w"> </span><span class="mi">2018</span><span class="w"> </span><span class="mi">09</span><span class="p">:</span><span class="mi">11</span><span class="p">:</span><span class="mi">49</span><span class="w"> </span><span class="n">Copyright</span><span class="w"> </span><span class="p">(</span><span class="k">c</span><span class="p">)</span><span class="w"> </span><span class="n">Microsoft</span><span class="w"> </span><span class="n">Corporation</span><span class="w"> </span><span class="n">Standard</span><span class="w"> </span><span class="n">Edition</span><span class="w"> </span><span class="p">(</span><span class="mi">64</span><span class="o">-</span><span class="nb">bit</span><span class="p">)</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="n">Windows</span><span class="w"> </span><span class="n">Server</span><span class="w"> </span><span class="mi">2016</span><span class="w"> </span><span class="n">Standard</span><span class="w"> </span><span class="mi">10</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="o">&lt;</span><span class="n">X64</span><span class="o">&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Build</span><span class="w"> </span><span class="mi">14393</span><span class="p">:</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Hypervisor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="lab">
+<h3><strong>LAB</strong><a class="headerlink" href="#lab" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/examining-the-database/lab-querying-database-version-oracle">SQL injection attack, querying the database type and version on Oracle</a></p>
+</section>
+<section id="id1">
+<h3><strong>LAB</strong><a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/examining-the-database/lab-querying-database-version-mysql-microsoft">SQL injection attack, querying the database type and version on MySQL and Microsoft</a></p>
+</section>
+</section>
+<section id="listing-the-contents-of-the-database">
+<h2>Listing the contents of the database<a class="headerlink" href="#listing-the-contents-of-the-database" title="Permalink to this heading"></a></h2>
+<p>Most database types (except Oracle) have a set of views called the information schema. This provides information about the database.</p>
+<p>For example, you can query <code class="docutils literal notranslate"><span class="pre">information_schema.tables</span></code> to list the tables in the database:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">information_schema</span><span class="p">.</span><span class="n">tables</span>
+</pre></div>
+</div>
+<p>This returns output like the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TABLE_CATALOG</span>  <span class="n">TABLE_SCHEMA</span>  <span class="n">TABLE_NAME</span>  <span class="n">TABLE_TYPE</span>
+<span class="o">=====================================================</span>
+<span class="n">MyDatabase</span>     <span class="n">dbo</span>           <span class="n">Products</span>    <span class="n">BASE</span> <span class="n">TABLE</span>
+<span class="n">MyDatabase</span>     <span class="n">dbo</span>           <span class="n">Users</span>       <span class="n">BASE</span> <span class="n">TABLE</span>
+<span class="n">MyDatabase</span>     <span class="n">dbo</span>           <span class="n">Feedback</span>    <span class="n">BASE</span> <span class="n">TABLE</span>
+</pre></div>
+</div>
+<p>This output indicates that there are three tables, called <code class="docutils literal notranslate"><span class="pre">Products</span></code>, <code class="docutils literal notranslate"><span class="pre">Users</span></code>, and <code class="docutils literal notranslate"><span class="pre">Feedback</span></code>.</p>
+<p>You can then query <code class="docutils literal notranslate"><span class="pre">information_schema.columns</span></code> to list the columns in individual tables:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">information_schema</span><span class="p">.</span><span class="n">columns</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="k">table_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Users&#39;</span>
+</pre></div>
+</div>
+<p>This returns output like the following:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="n">TABLE_CATALOG</span><span class="w">  </span><span class="n">TABLE_SCHEMA</span><span class="w">  </span><span class="k">TABLE_NAME</span><span class="w">  </span><span class="k">COLUMN_NAME</span><span class="w">  </span><span class="n">DATA_TYPE</span>
+<span class="o">=================================================================</span>
+<span class="n">MyDatabase</span><span class="w">     </span><span class="n">dbo</span><span class="w">           </span><span class="n">Users</span><span class="w">       </span><span class="n">UserId</span><span class="w">       </span><span class="nb">int</span>
+<span class="n">MyDatabase</span><span class="w">     </span><span class="n">dbo</span><span class="w">           </span><span class="n">Users</span><span class="w">       </span><span class="n">Username</span><span class="w">     </span><span class="nb">varchar</span>
+<span class="n">MyDatabase</span><span class="w">     </span><span class="n">dbo</span><span class="w">           </span><span class="n">Users</span><span class="w">       </span><span class="n">Password</span><span class="w">     </span><span class="nb">varchar</span>
+</pre></div>
+</div>
+<p>This output shows the columns in the specified table and the data type of each column.</p>
+<section id="id2">
+<h3><strong>LAB</strong><a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/examining-the-database/lab-listing-database-contents-non-oracle">SQL injection attack, listing the database contents on non-Oracle databases</a></p>
+</section>
+<section id="listing-the-contents-of-an-oracle-database">
+<h3>Listing the contents of an Oracle database<a class="headerlink" href="#listing-the-contents-of-an-oracle-database" title="Permalink to this heading"></a></h3>
+<p>On Oracle, you can find the same information as follows:</p>
+<ul>
+<li><p>You can list tables by querying <code class="docutils literal notranslate"><span class="pre">all_tables</span></code>:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">all_tables</span>
+</pre></div>
+</div>
+</li>
+<li><p>You can list columns by querying <code class="docutils literal notranslate"><span class="pre">all_tab_columns</span></code>:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">all_tab_columns</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="k">table_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;USERS&#39;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<section id="id3">
+<h4><strong>LAB</strong><a class="headerlink" href="#id3" title="Permalink to this heading"></a></h4>
+<p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/examining-the-database/lab-listing-database-contents-oracle">SQL injection attack, listing the database contents on Oracle</a></p>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

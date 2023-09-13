@@ -7,10 +7,10 @@ PortSwigger 学习指南
 =======================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: 服务端
 
-   source/server/race_conditions
+   source/server/sql-injection/readme
 
 .. toctree::
    :maxdepth: 1

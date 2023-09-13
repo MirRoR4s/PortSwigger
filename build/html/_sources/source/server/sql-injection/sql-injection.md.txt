@@ -278,3 +278,5 @@ For a parameterized query to be effective in preventing SQL injection, the strin
 #### Read more
 
 - [Find SQL injection vulnerabilities using Burp Suite's web vulnerability scanner](https://portswigger.net/burp/vulnerability-scanner)
+
+
