@@ -11,6 +11,7 @@ PortSwigger 学习指南
    :caption: 服务端
 
    source/server/sql-injection/readme
+   source/server/authentication/readme
 
 .. toctree::
    :maxdepth: 1

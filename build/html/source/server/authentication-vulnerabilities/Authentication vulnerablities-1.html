@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tags: PortSwigger &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sql-injection/readme.html">SQL injection</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../client/xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">tags: <code class="docutils literal notranslate"><span class="pre">PortSwigger</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/server/authentication-vulnerabilities/Authentication vulnerablities-1.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tags-portswigger">
+<h1>tags: <code class="docutils literal notranslate"><span class="pre">PortSwigger</span></code><a class="headerlink" href="#tags-portswigger" title="Permalink to this heading"></a></h1>
+</section>
+<section id="authentication-vulnerabilities">
+<h1>Authentication vulnerabilities<a class="headerlink" href="#authentication-vulnerabilities" title="Permalink to this heading"></a></h1>
+<p>Conceptually at least, authentication vulnerabilities are some of the simplest issues to understand. However, they can be among the most critical due to the obvious relationship between authentication and security. As well as potentially allowing attackers direct access to sensitive data and functionality, they also expose additional attack surface for further exploits. For this reason, learning how to identify and exploit authentication vulnerabilities, including how to bypass common protection measures, is a fundamental skill.</p>
+<p>In this section, we’ll look at some of the most common authentication mechanisms used by websites and discuss potential vulnerabilities in them. We’ll highlight both <strong>inherent</strong>（固有的） vulnerabilities in different authentication mechanisms, as well as some typical vulnerabilities that are introduced by their improper implementation. Finally, we’ll provide some basic guidance on how you can ensure that your own authentication mechanisms are as robust as possible.</p>
+<p><img alt="" src="https://i.imgur.com/hM5MMZG.png" /></p>
+<section id="labs">
+<h2>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h2>
+<p>If you’re already familiar with the basic concepts behind authentication vulnerabilities and just want to practice exploiting them on some realistic, deliberately vulnerable targets, you can access all of the labs in this topic from the link below.</p>
+<p><a class="reference external" href="https://portswigger.net/web-security/all-labs#authentication">View all authentication labs</a></p>
+</section>
+<section id="what-is-authentication">
+<h2>What is authentication?<a class="headerlink" href="#what-is-authentication" title="Permalink to this heading"></a></h2>
+<p>Authentication is the process of verifying the identity of a given user or client. In other words, it involves making sure that they really are who they claim to be. At least in part, websites are exposed to anyone who is connected to the internet by design. Therefore, robust authentication mechanisms are an <strong>integral</strong>（必要的） aspect of effective web security.</p>
+<p>There are three authentication factors into which different types of authentication can be categorized（可以将不同类型的身份验证分为三个身份验证因素：）:</p>
+<blockquote>
+<div><p>关于介词+which语法结构，可参看<a class="reference external" href="https://zhuanlan.zhihu.com/p/481795945">此处</a>。</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>Something you <strong>know</strong>, such as a password or the answer to a security question. These are sometimes referred to as “<strong>knowledge factors</strong>（知识因素）”.</p></li>
+<li><p>Something you <strong>have</strong>, that is, a physical object like a mobile phone or security token. These are sometimes referred to as “<strong>possession</strong>（占有） factors”.</p></li>
+<li><p>Something you <strong>are</strong> or do, for example, your biometrics or patterns of behavior. These are sometimes referred to as “<strong>inherence</strong>（固有） factors”.</p></li>
+</ul>
+<p>Authentication mechanisms rely on <strong>a range of</strong>（一系列） technologies to verify one or more of these factors.</p>
+<section id="what-is-the-difference-between-authentication-and-authorization">
+<h3>What is the difference between authentication and authorization?<a class="headerlink" href="#what-is-the-difference-between-authentication-and-authorization" title="Permalink to this heading"></a></h3>
+<p>Authentication is the process of verifying that a user really <strong>is who they claim to be</strong>, whereas authorization involves verifying whether a user <strong>is allowed to do something</strong>.</p>
+<p>In the context of a website or web application, authentication determines whether someone attempting to access the site with the username <code class="docutils literal notranslate"><span class="pre">Carlos123</span></code> really is the same person who created the account.</p>
+<p>Once <code class="docutils literal notranslate"><span class="pre">Carlos123</span></code> is authenticated, his permissions determine whether or not he is authorized, for example, to access personal information about other users or perform actions such as deleting another user’s account.</p>
+</section>
+</section>
+<section id="how-do-authentication-vulnerabilities-arise">
+<h2>How do authentication vulnerabilities <strong>arise</strong>（产生）?<a class="headerlink" href="#how-do-authentication-vulnerabilities-arise" title="Permalink to this heading"></a></h2>
+<p><strong>Broadly speaking</strong>（一般地说）, most vulnerabilities in authentication mechanisms arise in one of two ways:</p>
+<ul class="simple">
+<li><p>The authentication mechanisms are weak because they fail to adequately protect against brute-force attacks.</p></li>
+<li><p>Logic flaws or <strong>poor coding</strong>（糟糕的编码） in the implementation allow the authentication mechanisms to be bypassed entirely by an attacker. This is sometimes referred to as “broken authentication（身份验证缺陷？待定，直译为破碎的身份验证）”.</p></li>
+</ul>
+<p>In many areas of web development, <a class="reference external" href="https://portswigger.net/web-security/logic-flaws">logic flaws</a> will simply cause the website to behave unexpectedly, which may or may not be a security issue. However, as authentication is so critical to security, the likelihood that flawed authentication logic exposes the website to security issues is clearly elevated（提高）.</p>
+</section>
+<section id="what-is-the-impact-of-vulnerable-authentication">
+<h2>What is the impact of vulnerable authentication?<a class="headerlink" href="#what-is-the-impact-of-vulnerable-authentication" title="Permalink to this heading"></a></h2>
+<p>The impact of authentication vulnerabilities can be very severe. Once an attacker has either bypassed authentication or has brute-forced their way into another user’s account, they have access to all the data and functionality that the compromised account has. If they are able to compromise a high-privileged account, such as a system administrator, they could take full control over the entire application and potentially gain access to internal infrastructure.</p>
+<p>Even compromising a low-privileged account might still grant an attacker access to data that they otherwise shouldn’t have, such as commercially sensitive business information. Even if the account does not have access to any sensitive data, it might still allow the attacker to access additional pages, which provide a further attack surface. Often, certain high-severity attacks will not be possible from publicly accessible pages, but they may be possible from an internal page.</p>
+</section>
+<section id="vulnerabilities-in-authentication-mechanisms">
+<h2>Vulnerabilities in authentication mechanisms<a class="headerlink" href="#vulnerabilities-in-authentication-mechanisms" title="Permalink to this heading"></a></h2>
+<p>A website’s authentication system usually consists of several distinct mechanisms where vulnerabilities may occur. Some vulnerabilities are broadly applicable across all of these contexts, whereas others are more specific to the functionality provided.</p>
+<p>We will look more closely at some of the most common vulnerabilities in the following areas:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/authentication/password-based">Vulnerabilities in password-based login</a> LABS</p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/authentication/multi-factor">Vulnerabilities in multi-factor authentication</a> LABS</p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/authentication/other-mechanisms">Vulnerabilities in other authentication mechanisms</a> LABS</p></li>
+</ul>
+<p>Note that several of the labs require you to enumerate usernames and brute-force passwords. To help you with this process, we’ve provided a shortlist of candidate <a class="reference external" href="https://portswigger.net/web-security/authentication/auth-lab-usernames">usernames</a> and <a class="reference external" href="https://portswigger.net/web-security/authentication/auth-lab-passwords">passwords</a> that you should use to solve the labs.</p>
+<section id="vulnerabilities-in-third-party-authentication-mechanisms">
+<h3>Vulnerabilities in third-party authentication mechanisms<a class="headerlink" href="#vulnerabilities-in-third-party-authentication-mechanisms" title="Permalink to this heading"></a></h3>
+<p>If you love to hack authentication mechanisms, after completing our main authentication labs, more advanced users may want to try and tackle our OAuth authentication labs.</p>
+<section id="read-more">
+<h4>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h4>
+<p><a class="reference external" href="https://portswigger.net/web-security/oauth">OAuth authentication</a></p>
+</section>
+</section>
+</section>
+<section id="preventing-attacks-on-your-own-authentication-mechanisms">
+<h2>Preventing attacks on your own authentication mechanisms<a class="headerlink" href="#preventing-attacks-on-your-own-authentication-mechanisms" title="Permalink to this heading"></a></h2>
+<p>We have demonstrated several ways in which websites can be vulnerable due to how they implement authentication. To reduce the risk of such attacks on your own websites, there are several general principles that you should always try to follow.</p>
+<section id="id1">
+<h3>Read more<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://portswigger.net/web-security/authentication/securing">How to secure your authentication mechanisms</a></p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
