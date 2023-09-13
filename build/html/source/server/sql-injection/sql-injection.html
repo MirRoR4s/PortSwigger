@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL injection &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../race_conditions.html">条件竞争</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../client/xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">SQL injection</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/server/sql-injection/sql-injection.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="sql-injection">
+<h1><a class="reference external" href="https://portswigger.net/web-security/sql-injection">SQL injection</a><a class="headerlink" href="#sql-injection" title="Permalink to this heading"></a></h1>
+<p>In this section, we explain:</p>
+<ul class="simple">
+<li><p>What SQL injection (SQLi) is.</p></li>
+<li><p>How to find and exploit different types of SQLi vulnerabilities.</p></li>
+<li><p>How to prevent SQLi.</p></li>
+</ul>
+<p><img alt="image-20230913105748945" src="../../../_images/image-20230913105748945.png" /></p>
+<section id="labs">
+<h2>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h2>
+<p>If you’re familiar with the basic concepts behind SQLi vulnerabilities and want to practice exploiting them on some realistic, deliberately vulnerable targets, you can access labs in this topic from the link below.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/all-labs#sql-injection">View all SQL injection labs</a></p></li>
+</ul>
+</section>
+<section id="what-is-sql-injection-sqli">
+<h2>What is SQL injection (SQLi)?<a class="headerlink" href="#what-is-sql-injection-sqli" title="Permalink to this heading"></a></h2>
+<p>SQL injection (SQLi) is a web security vulnerability that allows an attacker to interfere with the queries that an application makes to its database. This can allow an attacker to view data that they are not normally able to retrieve. This might include data that belongs to other users, or any other data that the application can access. In many cases, an attacker can modify or delete this data, causing persistent changes to the application’s content or behavior.</p>
+<p>In some situations, an attacker can escalate a SQL injection attack to compromise the underlying server or other back-end infrastructure. It can also enable them to perform denial-of-service attacks.</p>
+<p>官方给出了一个视频，具体链接如下：</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">iframe</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://www.youtube.com/embed/wX6tszfgYp4?origin=https://portswigger.net&amp;amp;rel=0&quot;</span> <span class="na">allowfullscreen</span><span class="o">=</span><span class="s">&quot;&quot;</span> <span class="na">data-pp-element-found</span><span class="o">=</span><span class="s">&quot;&quot;</span> <span class="na">style</span><span class="o">=</span><span class="s">&quot;box-sizing: border-box; top: 0px; left: 0px; width: 860px; height: 483.75px; border: 0px;&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">iframe</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="what-is-the-impact-of-a-successful-sql-injection-attack">
+<h2>What is the impact of a successful SQL injection attack?<a class="headerlink" href="#what-is-the-impact-of-a-successful-sql-injection-attack" title="Permalink to this heading"></a></h2>
+<p>A successful SQL injection attack can result in unauthorized access to sensitive data, such as:</p>
+<ul class="simple">
+<li><p>Passwords.</p></li>
+<li><p>Credit card details.</p></li>
+<li><p>Personal user information.</p></li>
+</ul>
+<p>SQL injection attacks have been used in many high-profile data breaches over the years. These have caused reputational damage and regulatory fines. In some cases, an attacker can obtain a persistent backdoor into an organization’s systems, leading to a long-term compromise that can go unnoticed for an extended period.</p>
+</section>
+<section id="how-to-detect-sql-injection-vulnerabilities">
+<h2>How to detect SQL injection vulnerabilities<a class="headerlink" href="#how-to-detect-sql-injection-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>You can detect SQL injection manually using a systematic set of tests against every entry point in the application. To do this, you would typically submit:</p>
+<ul class="simple">
+<li><p>The single quote character <code class="docutils literal notranslate"><span class="pre">'</span></code> and look for errors or other anomalies.</p></li>
+<li><p>Some SQL-specific syntax that evaluates to the base (original) value of the entry point, and to a different value, and look for systematic differences in the application responses.</p></li>
+<li><p>Boolean conditions such as <code class="docutils literal notranslate"><span class="pre">OR</span> <span class="pre">1=1</span></code> and <code class="docutils literal notranslate"><span class="pre">OR</span> <span class="pre">1=2</span></code>, and look for differences in the application’s responses.</p></li>
+<li><p>Payloads designed to trigger time delays when executed within a SQL query, and look for differences in the time taken to respond.</p></li>
+<li><p><a class="reference external" href="https://portswigger.net/burp/application-security-testing/oast">OAST</a> payloads designed to trigger an out-of-band network interaction when executed within a SQL query, and monitor any resulting interactions.</p></li>
+</ul>
+<p>Alternatively, you can find the majority of SQL injection vulnerabilities quickly and reliably using <a class="reference external" href="https://portswigger.net/burp/vulnerability-scanner">Burp Scanner</a>.</p>
+</section>
+<section id="sql-injection-in-different-parts-of-the-query">
+<h2>SQL injection in different parts of the query<a class="headerlink" href="#sql-injection-in-different-parts-of-the-query" title="Permalink to this heading"></a></h2>
+<p>Most SQL injection vulnerabilities occur within the <code class="docutils literal notranslate"><span class="pre">WHERE</span></code> clause of a <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> query. Most experienced testers are familiar with this type of SQL injection.</p>
+<p>However, SQL injection vulnerabilities can occur at any location within the query, and within different query types. Some other common locations where SQL injection arises are:</p>
+<ul class="simple">
+<li><p>In <code class="docutils literal notranslate"><span class="pre">UPDATE</span></code> statements, within the updated values or the <code class="docutils literal notranslate"><span class="pre">WHERE</span></code> clause.</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">INSERT</span></code> statements, within the inserted values.</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> statements, within the table or column name.</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> statements, within the <code class="docutils literal notranslate"><span class="pre">ORDER</span> <span class="pre">BY</span></code> clause.</p></li>
+</ul>
+</section>
+<section id="sql-injection-examples">
+<h2>SQL injection examples<a class="headerlink" href="#sql-injection-examples" title="Permalink to this heading"></a></h2>
+<p>There are lots of SQL injection vulnerabilities, attacks, and techniques, that occur in different situations. Some common SQL injection examples include:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/sql-injection#retrieving-hidden-data">Retrieving hidden data</a>, where you can modify a SQL query to return additional results.</p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/sql-injection#subverting-application-logic">Subverting application logic</a>, where you can change a query to interfere with the application’s logic.</p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/union-attacks">UNION attacks</a>, where you can retrieve data from different database tables.</p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind">Blind SQL injection</a>, where the results of a query you control are not returned in the application’s responses.</p></li>
+</ul>
+</section>
+<section id="retrieving-hidden-data">
+<h2>Retrieving hidden data<a class="headerlink" href="#retrieving-hidden-data" title="Permalink to this heading"></a></h2>
+<p>Imagine a shopping application that displays products in different categories. When the user clicks on the <strong>Gifts</strong> category, their browser requests the URL:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/products?category=Gifts
+</pre></div>
+</div>
+<p>This causes the application to make a SQL query to retrieve details of the relevant products from the database:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>SELECT * FROM products WHERE category = &#39;Gifts&#39; AND released = 1
+</pre></div>
+</div>
+<p>This SQL query asks the database to return:</p>
+<ul class="simple">
+<li><p>all details (<code class="docutils literal notranslate"><span class="pre">*</span></code>)</p></li>
+<li><p>from the <code class="docutils literal notranslate"><span class="pre">products</span></code> table</p></li>
+<li><p>where the <code class="docutils literal notranslate"><span class="pre">category</span></code> is <code class="docutils literal notranslate"><span class="pre">Gifts</span></code></p></li>
+<li><p>and <code class="docutils literal notranslate"><span class="pre">released</span></code> is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
+</ul>
+<p>The restriction <code class="docutils literal notranslate"><span class="pre">released</span> <span class="pre">=</span> <span class="pre">1</span></code> is being used to hide products that are not released. We could assume for unreleased products, <code class="docutils literal notranslate"><span class="pre">released</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p>
+<p>The application doesn’t implement any defenses against SQL injection attacks. This means an attacker can construct the following attack, for example:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/products?category=Gifts&#39;--
+</pre></div>
+</div>
+<p>This results in the SQL query:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">products</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">category</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Gifts&#39;</span><span class="c1">--&#39; AND released = 1</span>
+</pre></div>
+</div>
+<p>Crucially, note that <code class="docutils literal notranslate"><span class="pre">--</span></code> is a comment indicator in SQL. This means that the rest of the query is interpreted as a comment, effectively removing it. In this example, this means the query no longer includes <code class="docutils literal notranslate"><span class="pre">AND</span> <span class="pre">released</span> <span class="pre">=</span> <span class="pre">1</span></code>. As a result, all products are displayed, including those that are not yet released.</p>
+<p>You can use a similar attack to cause the application to display all the products in any category, including categories that they don’t know about:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/products?category=Gifts&#39;+OR+1=1--
+</pre></div>
+</div>
+<p>This results in the SQL query:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>SELECT * FROM products WHERE category = &#39;Gifts&#39; OR 1=1--&#39; AND released = 1
+</pre></div>
+</div>
+<p>The modified query returns all items where either the <code class="docutils literal notranslate"><span class="pre">category</span></code> is <code class="docutils literal notranslate"><span class="pre">Gifts</span></code>, or <code class="docutils literal notranslate"><span class="pre">1</span></code> is equal to <code class="docutils literal notranslate"><span class="pre">1</span></code>. As <code class="docutils literal notranslate"><span class="pre">1=1</span></code> is always true, the query returns all items.</p>
+<p><strong>Warning</strong></p>
+<p>Take care when injecting the condition <code class="docutils literal notranslate"><span class="pre">OR</span> <span class="pre">1=1</span></code> into a SQL query. Even if it appears to be harmless in the context you’re injecting into, it’s common for applications to use data from a single request in multiple different queries. If your condition reaches an <code class="docutils literal notranslate"><span class="pre">UPDATE</span></code> or <code class="docutils literal notranslate"><span class="pre">DELETE</span></code> statement, for example, it can result in an accidental loss of data.</p>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data">SQL injection vulnerability in WHERE clause allowing retrieval of hidden data</a></p>
+</section>
+<section id="subverting-application-logic">
+<h2>Subverting application logic<a class="headerlink" href="#subverting-application-logic" title="Permalink to this heading"></a></h2>
+<p>Imagine an application that lets users log in with a username and password. If a user submits the username <code class="docutils literal notranslate"><span class="pre">wiener</span></code> and the password <code class="docutils literal notranslate"><span class="pre">bluecheese</span></code>, the application checks the credentials by performing the following SQL query:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;wiener&#39;</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">password</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;bluecheese&#39;</span>
+</pre></div>
+</div>
+<p>If the query returns the details of a user, then the login is successful. Otherwise, it is rejected.</p>
+<p>In this case, an attacker can log in as any user without the need for a password. They can do this using the SQL comment sequence <code class="docutils literal notranslate"><span class="pre">--</span></code> to remove the password check from the <code class="docutils literal notranslate"><span class="pre">WHERE</span></code> clause of the query. For example, submitting the username <code class="docutils literal notranslate"><span class="pre">administrator'--</span></code> and a blank password results in the following query:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;administrator&#39;</span><span class="c1">--&#39; AND password = &#39;&#39;</span>
+</pre></div>
+</div>
+<p>This query returns the user whose <code class="docutils literal notranslate"><span class="pre">username</span></code> is <code class="docutils literal notranslate"><span class="pre">administrator</span></code> and successfully logs the attacker in as that user.</p>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/lab-login-bypass">SQL injection vulnerability allowing login bypass</a></p>
+<p>Solved</p>
+</section>
+<section id="retrieving-data-from-other-database-tables">
+<h2>Retrieving data from other database tables<a class="headerlink" href="#retrieving-data-from-other-database-tables" title="Permalink to this heading"></a></h2>
+<p>In cases where the application responds with the results of a SQL query, an attacker can use a SQL injection vulnerability to retrieve data from other tables within the database. You can use the <code class="docutils literal notranslate"><span class="pre">UNION</span></code> keyword to execute an additional <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> query and append the results to the original query.</p>
+<p>For example, if an application executes the following query containing the user input <code class="docutils literal notranslate"><span class="pre">Gifts</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SELECT</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span> <span class="n">FROM</span> <span class="n">products</span> <span class="n">WHERE</span> <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;Gifts&#39;</span>
+</pre></div>
+</div>
+<p>An attacker can submit the input:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39; UNION SELECT username, password FROM users--</span>
+</pre></div>
+</div>
+<p>This causes the application to return all usernames and passwords along with the names and descriptions of products.</p>
+<section id="read-more">
+<h3>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/union-attacks">SQL injection UNION attacks</a></p></li>
+</ul>
+</section>
+</section>
+<section id="blind-sql-injection-vulnerabilities">
+<h2>Blind SQL injection vulnerabilities<a class="headerlink" href="#blind-sql-injection-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>Many instances of SQL injection are blind vulnerabilities. This means that the application does not return the results of the SQL query or the details of any database errors within its responses. Blind vulnerabilities can still be exploited to access unauthorized data, but the techniques involved are generally more complicated and difficult to perform.</p>
+<p>The following techniques can be used to exploit blind SQL injection vulnerabilities, depending on the nature of the vulnerability and the database involved:</p>
+<ul class="simple">
+<li><p>You can change the logic of the query to trigger a detectable difference in the application’s response depending on the truth of a single condition. This might involve injecting a new condition into some Boolean logic, or conditionally triggering an error such as a divide-by-zero.</p></li>
+<li><p>You can conditionally trigger a time delay in the processing of the query. This enables you to infer the truth of the condition based on the time that the application takes to respond.</p></li>
+<li><p>You can trigger an out-of-band network interaction, using OAST techniques. This technique is extremely powerful and works in situations where the other techniques do not. Often, you can directly exfiltrate data via the out-of-band channel. For example, you can place the data into a DNS lookup for a domain that you control.</p></li>
+</ul>
+<section id="id1">
+<h3>Read more<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind">Blind SQL injection</a></p></li>
+</ul>
+</section>
+</section>
+<section id="second-order-sql-injection">
+<h2>Second-order SQL injection<a class="headerlink" href="#second-order-sql-injection" title="Permalink to this heading"></a></h2>
+<p>First-order SQL injection occurs when the application processes user input from an HTTP request and incorporates the input into a SQL query in an unsafe way.</p>
+<p>Second-order SQL injection occurs when the application takes user input from an HTTP request and stores it for future use. This is usually done by placing the input into a database, but no vulnerability occurs at the point where the data is stored. Later, when handling a different HTTP request, the application retrieves the stored data and incorporates it into a SQL query in an unsafe way. For this reason, second-order SQL injection is also known as stored SQL injection.</p>
+<p><img alt="Second-order SQL injection" src="https://portswigger.net/web-security/images/second-order-sql-injection.svg" /></p>
+<p>Second-order SQL injection often occurs in situations where developers are aware of SQL injection vulnerabilities, and so safely handle the initial placement of the input into the database. When the data is later processed, it is deemed to be safe, since it was previously placed into the database safely. At this point, the data is handled in an unsafe way, because the developer wrongly deems it to be trusted.</p>
+</section>
+<section id="examining-the-database">
+<h2>Examining the database<a class="headerlink" href="#examining-the-database" title="Permalink to this heading"></a></h2>
+<p>Some core features of the SQL language are implemented in the same way across popular database platforms, and so many ways of detecting and exploiting SQL injection vulnerabilities work identically on different types of database.</p>
+<p>However, there are also many differences between common databases. These mean that some techniques for detecting and exploiting SQL injection work differently on different platforms. For example:</p>
+<ul class="simple">
+<li><p>Syntax for string concatenation.</p></li>
+<li><p>Comments.</p></li>
+<li><p>Batched (or stacked) queries.</p></li>
+<li><p>Platform-specific APIs.</p></li>
+<li><p>Error messages.</p></li>
+</ul>
+<section id="id2">
+<h3>Read more<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/cheat-sheet">SQL injection cheat sheet</a></p>
+<p>After you identify a SQL injection vulnerability, it’s often useful to obtain information about the database. This information can help you to exploit the vulnerability.</p>
+<p>You can query the version details for the database. Different methods work for different database types. This means that if you find a particular method that works, you can infer the database type. For example, on Oracle you can execute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>SELECT * FROM v$version
+</pre></div>
+</div>
+<p>You can also identify what database tables exist, and the columns they contain. For example, on most databases you can execute the following query to list the tables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SELECT</span> <span class="o">*</span> <span class="n">FROM</span> <span class="n">information_schema</span><span class="o">.</span><span class="n">tables</span>
+</pre></div>
+</div>
+</section>
+<section id="id3">
+<h3>Read more<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/examining-the-database">Examining the database in SQL injection attacks</a></p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/cheat-sheet">SQL injection cheat sheet</a></p></li>
+</ul>
+</section>
+</section>
+<section id="sql-injection-in-different-contexts">
+<h2>SQL injection in different contexts<a class="headerlink" href="#sql-injection-in-different-contexts" title="Permalink to this heading"></a></h2>
+<p>In the previous labs, you used the query string to inject your malicious SQL payload. However, you can perform SQL injection attacks using any controllable input that is processed as a SQL query by the application. For example, some websites take input in JSON or XML format and use this to query the database.</p>
+<p>These different formats may provide different ways for you to <a class="reference external" href="https://portswigger.net/web-security/essential-skills/obfuscating-attacks-using-encodings#obfuscation-via-xml-encoding">obfuscate attacks</a> that are otherwise blocked due to WAFs and other defense mechanisms. Weak implementations often look for common SQL injection keywords within the request, so you may be able to bypass these filters by encoding or escaping characters in the prohibited keywords. For example, the following XML-based SQL injection uses an XML escape sequence to encode the <code class="docutils literal notranslate"><span class="pre">S</span></code> character in <code class="docutils literal notranslate"><span class="pre">SELECT</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">stockCheck</span><span class="o">&gt;</span>    <span class="o">&lt;</span><span class="n">productId</span><span class="o">&gt;</span><span class="mi">123</span><span class="o">&lt;/</span><span class="n">productId</span><span class="o">&gt;</span>    <span class="o">&lt;</span><span class="n">storeId</span><span class="o">&gt;</span><span class="mi">999</span> <span class="n">SELECT</span> <span class="o">*</span> <span class="n">FROM</span> <span class="n">information_schema</span><span class="o">.</span><span class="n">tables</span><span class="o">&lt;/</span><span class="n">storeId</span><span class="o">&gt;</span> <span class="o">&lt;/</span><span class="n">stockCheck</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>This will be decoded server-side before being passed to the SQL interpreter.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/lab-sql-injection-with-filter-bypass-via-xml-encoding">SQL injection with filter bypass via XML encoding</a></p>
+<p>Solved</p>
+</section>
+<section id="how-to-prevent-sql-injection">
+<h2>How to prevent SQL injection<a class="headerlink" href="#how-to-prevent-sql-injection" title="Permalink to this heading"></a></h2>
+<p>You can prevent most instances of SQL injection using parameterized queries instead of string concatenation within the query. These parameterized queries are also know as “prepared statements”.</p>
+<p>The following code is vulnerable to SQL injection because the user input is concatenated directly into the query:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">String</span> <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;SELECT * FROM products WHERE category = &#39;&quot;</span><span class="o">+</span> <span class="nb">input</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">;</span> <span class="n">Statement</span> <span class="n">statement</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">createStatement</span><span class="p">();</span> <span class="n">ResultSet</span> <span class="n">resultSet</span> <span class="o">=</span> <span class="n">statement</span><span class="o">.</span><span class="n">executeQuery</span><span class="p">(</span><span class="n">query</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>You can rewrite this code in a way that prevents the user input from interfering with the query structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">PreparedStatement</span> <span class="n">statement</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">prepareStatement</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM products WHERE category = ?&quot;</span><span class="p">);</span> <span class="n">statement</span><span class="o">.</span><span class="n">setString</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">input</span><span class="p">);</span> <span class="n">ResultSet</span> <span class="n">resultSet</span> <span class="o">=</span> <span class="n">statement</span><span class="o">.</span><span class="n">executeQuery</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>You can use parameterized queries for any situation where untrusted input appears as data within the query, including the <code class="docutils literal notranslate"><span class="pre">WHERE</span></code> clause and values in an <code class="docutils literal notranslate"><span class="pre">INSERT</span></code> or <code class="docutils literal notranslate"><span class="pre">UPDATE</span></code> statement. They can’t be used to handle untrusted input in other parts of the query, such as table or column names, or the <code class="docutils literal notranslate"><span class="pre">ORDER</span> <span class="pre">BY</span></code> clause. Application functionality that places untrusted data into these parts of the query needs to take a different approach, such as:</p>
+<ul class="simple">
+<li><p>Whitelisting permitted input values.</p></li>
+<li><p>Using different logic to deliver the required behavior.</p></li>
+</ul>
+<p>For a parameterized query to be effective in preventing SQL injection, the string that is used in the query must always be a hard-coded constant. It must never contain any variable data from any origin. Do not be tempted to decide case-by-case whether an item of data is trusted, and continue using string concatenation within the query for cases that are considered safe. It’s easy to make mistakes about the possible origin of data, or for changes in other code to taint trusted data.</p>
+<section id="id4">
+<h3>Read more<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/burp/vulnerability-scanner">Find SQL injection vulnerabilities using Burp Suite’s web vulnerability scanner</a></p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

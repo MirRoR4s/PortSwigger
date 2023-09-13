@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reflected XSS &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../server/race_conditions.html">条件竞争</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Reflected XSS</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/client/xss/reflected-xss.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reflected-xss">
+<h1>Reflected XSS<a class="headerlink" href="#reflected-xss" title="Permalink to this heading"></a></h1>
+<p>In this section, we’ll explain reflected cross-site scripting, describe the impact of reflected XSS attacks, and spell out how to find reflected XSS vulnerabilities.</p>
+<section id="what-is-reflected-cross-site-scripting">
+<h2>What is reflected cross-site scripting?<a class="headerlink" href="#what-is-reflected-cross-site-scripting" title="Permalink to this heading"></a></h2>
+<p>Reflected cross-site scripting (or XSS) arises when an application receives data in an HTTP request and includes that data within the immediate response in an unsafe way.</p>
+<p>Suppose a website has a search function which receives the user-supplied search term in a URL parameter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/search?term=gift
+</pre></div>
+</div>
+<p>The application echoes the supplied search term in the response to this URL:</p>
+<p>You searched for: gift</p>
+<p>Assuming the application doesn’t perform any other processing of the data, an attacker can construct an attack like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/search?term=&lt;script&gt;/*+Bad+stuff+here...+*/&lt;/script&gt;
+</pre></div>
+</div>
+<p>This URL results in the following response:</p>
+<p>You searched for: <script>/* Bad stuff here... */</script></p>
+<p>If another user of the application requests the attacker’s URL, then the script supplied by the attacker will execute in the victim user’s browser, in the context of their session with the application.</p>
+<p><strong>LAB</strong></p>
+<p>APPRENTICE<a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/reflected/lab-html-context-nothing-encoded">Reflected XSS into HTML context with nothing encoded</a></p>
+</section>
+<section id="impact-of-reflected-xss-attacks">
+<h2>Impact of reflected XSS attacks<a class="headerlink" href="#impact-of-reflected-xss-attacks" title="Permalink to this heading"></a></h2>
+<p>If an attacker can control a script that is executed in the victim’s browser, then they can typically fully compromise that user. Amongst other things, the attacker can:</p>
+<ul class="simple">
+<li><p>Perform any action within the application that the user can perform.</p></li>
+<li><p>View any information that the user is able to view.</p></li>
+<li><p>Modify any information that the user is able to modify.</p></li>
+<li><p>Initiate interactions with other application users, including malicious attacks, that will appear to originate from the initial victim user.</p></li>
+</ul>
+<p>There are various means by which an attacker might induce a victim user to make a request that they control, to deliver a reflected XSS attack. These include placing links on a website controlled by the attacker, or on another website that allows content to be generated, or by sending a link in an email, tweet or other message. The attack could be targeted directly against a known user, or could be an indiscriminate attack against any users of the application.</p>
+<p>The need for an external delivery mechanism for the attack means that the impact of reflected XSS is generally less severe than <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/stored">stored XSS</a>, where a self-contained attack can be delivered within the vulnerable application itself.</p>
+<section id="read-more">
+<h3>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/exploiting">Exploiting cross-site scripting vulnerabilities</a></p></li>
+</ul>
+</section>
+</section>
+<section id="reflected-xss-in-different-contexts">
+<h2>Reflected XSS in different contexts<a class="headerlink" href="#reflected-xss-in-different-contexts" title="Permalink to this heading"></a></h2>
+<p>There are many different varieties of reflected cross-site scripting. The location of the reflected data within the application’s response determines what type of payload is required to exploit it and might also affect the impact of the vulnerability.</p>
+<p>In addition, if the application performs any validation or other processing on the submitted data before it is reflected, this will generally affect what kind of XSS payload is needed.</p>
+<section id="id1">
+<h3>Read more<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/contexts">Cross-site scripting contexts</a></p></li>
+</ul>
+</section>
+</section>
+<section id="how-to-find-and-test-for-reflected-xss-vulnerabilities">
+<h2>How to find and test for reflected XSS vulnerabilities<a class="headerlink" href="#how-to-find-and-test-for-reflected-xss-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>The vast majority of reflected cross-site scripting vulnerabilities can be found quickly and reliably using Burp Suite’s <a class="reference external" href="https://portswigger.net/burp/vulnerability-scanner">web vulnerability scanner</a>.</p>
+<p>Testing for reflected XSS vulnerabilities manually involves the following steps:</p>
+<ul class="simple">
+<li><p><strong>Test every entry point.</strong> Test separately every entry point for data within the application’s HTTP requests. This includes parameters or other data within the URL query string and message body, and the URL file path. It also includes HTTP headers, although XSS-like behavior that can only be triggered via certain HTTP headers may not be exploitable in practice.</p></li>
+<li><p><strong>Submit random alphanumeric values.</strong> For each entry point, submit a unique random value and determine whether the value is reflected in the response. The value should be designed to survive most input validation, so needs to be fairly short and contain only alphanumeric characters. But it needs to be long enough to make accidental matches within the response highly unlikely. A random alphanumeric value of around 8 characters is normally ideal. You can use Burp Intruder’s number payloads [https://portswigger.net/burp/documentation/desktop/tools/intruder/payloads/types#numbers] with randomly generated hex values to generate suitable random values. And you can use Burp Intruder’s <a class="reference external" href="https://portswigger.net/burp/documentation/desktop/tools/intruder/configure-attack/settings#grep-payloads">grep payloads settings</a> to automatically flag responses that contain the submitted value.</p></li>
+<li><p><strong>Determine the reflection context.</strong> For each location within the response where the random value is reflected, determine its context. This might be in text between HTML tags, within a tag attribute which might be quoted, within a JavaScript string, etc.</p></li>
+<li><p><strong>Test a candidate payload.</strong> Based on the context of the reflection, test an initial candidate XSS payload that will trigger JavaScript execution if it is reflected unmodified within the response. The easiest way to test payloads is to send the request to <a class="reference external" href="https://portswigger.net/burp/documentation/desktop/tools/repeater">Burp Repeater</a>, modify the request to insert the candidate payload, issue the request, and then review the response to see if the payload worked. An efficient way to work is to leave the original random value in the request and place the candidate XSS payload before or after it. Then set the random value as the search term in Burp Repeater’s response view. Burp will highlight each location where the search term appears, letting you quickly locate the reflection.</p></li>
+<li><p><strong>Test alternative payloads.</strong> If the candidate XSS payload was modified by the application, or blocked altogether, then you will need to test alternative payloads and techniques that might deliver a working XSS attack based on the context of the reflection and the type of input validation that is being performed. For more details, see <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/contexts">cross-site scripting contexts</a></p></li>
+<li><p><strong>Test the attack in a browser.</strong> Finally, if you succeed in finding a payload that appears to work within Burp Repeater, transfer the attack to a real browser (by pasting the URL into the address bar, or by modifying the request in <a class="reference external" href="https://portswigger.net/burp/documentation/desktop/tools/proxy/intercept-messages">Burp Proxy’s intercept view</a>, and see if the injected JavaScript is indeed executed. Often, it is best to execute some simple JavaScript like <code class="docutils literal notranslate"><span class="pre">alert(document.domain)</span></code> which will trigger a visible popup within the browser if the attack succeeds.</p></li>
+</ul>
+</section>
+<section id="common-questions-about-reflected-cross-site-scripting">
+<h2>Common questions about reflected cross-site scripting<a class="headerlink" href="#common-questions-about-reflected-cross-site-scripting" title="Permalink to this heading"></a></h2>
+<p><strong>What is the difference between reflected XSS and stored XSS?</strong> Reflected XSS arises when an application takes some input from an HTTP request and embeds that input into the immediate response in an unsafe way. With stored XSS, the application instead stores the input and embeds it into a later response in an unsafe way.</p>
+<p><strong>What is the difference between reflected XSS and self-XSS?</strong> Self-XSS involves similar application behavior to regular reflected XSS, however it cannot be triggered in normal ways via a crafted URL or a cross-domain request. Instead, the vulnerability is only triggered if the victim themselves submits the XSS payload from their browser. Delivering a self-XSS attack normally involves socially engineering the victim to paste some attacker-supplied input into their browser. As such, it is normally considered to be a lame, low-impact issue.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
