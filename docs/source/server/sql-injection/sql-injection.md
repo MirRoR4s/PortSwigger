@@ -123,7 +123,7 @@ The modified query returns all items where either the `category` is `Gifts`, or 
 
 Take care when injecting the condition `OR 1=1` into a SQL query. Even if it appears to be harmless in the context you're injecting into, it's common for applications to use data from a single request in multiple different queries. If your condition reaches an `UPDATE` or `DELETE` statement, for example, it can result in an accidental loss of data.
 
-**LAB**
+##### **LAB**
 
 [SQL injection vulnerability in WHERE clause allowing retrieval of hidden data](https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data)
 
@@ -145,11 +145,9 @@ SELECT * FROM users WHERE username = 'administrator'--' AND password = ''
 
 This query returns the user whose `username` is `administrator` and successfully logs the attacker in as that user.
 
-**LAB**
+##### **LAB**
 
 [SQL injection vulnerability allowing login bypass](https://portswigger.net/web-security/sql-injection/lab-login-bypass)
-
-Solved
 
 ## Retrieving data from other database tables
 
@@ -157,19 +155,19 @@ In cases where the application responds with the results of a SQL query, an atta
 
 For example, if an application executes the following query containing the user input `Gifts`:
 
-```
+```sql
 SELECT name, description FROM products WHERE category = 'Gifts'
 ```
 
 An attacker can submit the input:
 
-```
+```sql
 ' UNION SELECT username, password FROM users--
 ```
 
 This causes the application to return all usernames and passwords along with the names and descriptions of products.
 
-#### Read more
+**Read more**
 
 - [SQL injection UNION attacks](https://portswigger.net/web-security/sql-injection/union-attacks)
 
@@ -183,7 +181,7 @@ The following techniques can be used to exploit blind SQL injection vulnerabilit
 - You can conditionally trigger a time delay in the processing of the query. This enables you to infer the truth of the condition based on the time that the application takes to respond.
 - You can trigger an out-of-band network interaction, using OAST techniques. This technique is extremely powerful and works in situations where the other techniques do not. Often, you can directly exfiltrate data via the out-of-band channel. For example, you can place the data into a DNS lookup for a domain that you control.
 
-#### Read more
+**Read more**
 
 - [Blind SQL injection](https://portswigger.net/web-security/sql-injection/blind)
 
@@ -193,7 +191,7 @@ First-order SQL injection occurs when the application processes user input from 
 
 Second-order SQL injection occurs when the application takes user input from an HTTP request and stores it for future use. This is usually done by placing the input into a database, but no vulnerability occurs at the point where the data is stored. Later, when handling a different HTTP request, the application retrieves the stored data and incorporates it into a SQL query in an unsafe way. For this reason, second-order SQL injection is also known as stored SQL injection.
 
-![Second-order SQL injection](https://portswigger.net/web-security/images/second-order-sql-injection.svg)
+![image-20230913112824184](../../../_static/images/image-20230913112824184.png)
 
 Second-order SQL injection often occurs in situations where developers are aware of SQL injection vulnerabilities, and so safely handle the initial placement of the input into the database. When the data is later processed, it is deemed to be safe, since it was previously placed into the database safely. At this point, the data is handled in an unsafe way, because the developer wrongly deems it to be trusted.
 
@@ -209,7 +207,7 @@ However, there are also many differences between common databases. These mean th
 - Platform-specific APIs.
 - Error messages.
 
-#### Read more
+##### Read more
 
 [SQL injection cheat sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet)
 
@@ -217,17 +215,17 @@ After you identify a SQL injection vulnerability, it's often useful to obtain in
 
 You can query the version details for the database. Different methods work for different database types. This means that if you find a particular method that works, you can infer the database type. For example, on Oracle you can execute:
 
-```
+```sql
 SELECT * FROM v$version
 ```
 
 You can also identify what database tables exist, and the columns they contain. For example, on most databases you can execute the following query to list the tables:
 
-```
+```sql
 SELECT * FROM information_schema.tables
 ```
 
-#### Read more
+##### Read more
 
 - [Examining the database in SQL injection attacks](https://portswigger.net/web-security/sql-injection/examining-the-database)
 - [SQL injection cheat sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet)
@@ -238,32 +236,36 @@ In the previous labs, you used the query string to inject your malicious SQL pay
 
 These different formats may provide different ways for you to [obfuscate attacks](https://portswigger.net/web-security/essential-skills/obfuscating-attacks-using-encodings#obfuscation-via-xml-encoding) that are otherwise blocked due to WAFs and other defense mechanisms. Weak implementations often look for common SQL injection keywords within the request, so you may be able to bypass these filters by encoding or escaping characters in the prohibited keywords. For example, the following XML-based SQL injection uses an XML escape sequence to encode the `S` character in `SELECT`:
 
-```
-<stockCheck>    <productId>123</productId>    <storeId>999 SELECT * FROM information_schema.tables</storeId> </stockCheck>
+```html
+<stockCheck>
+    <productId>123</productId>
+    <storeId>999 &#x53;ELECT * FROM information_schema.tables</storeId>
+</stockCheck>
 ```
 
 This will be decoded server-side before being passed to the SQL interpreter.
 
 **LAB**
 
-PRACTITIONER[SQL injection with filter bypass via XML encoding](https://portswigger.net/web-security/sql-injection/lab-sql-injection-with-filter-bypass-via-xml-encoding)
-
-Solved
+[SQL injection with filter bypass via XML encoding](https://portswigger.net/web-security/sql-injection/lab-sql-injection-with-filter-bypass-via-xml-encoding)
 
 ## How to prevent SQL injection
 
-You can prevent most instances of SQL injection using parameterized queries instead of string concatenation within the query. These parameterized queries are also know as "prepared statements".
+You can prevent most instances of SQL injection using **parameterized queries** instead of string concatenation within the query. These parameterized queries are also know as "prepared statements".
 
 The following code is vulnerable to SQL injection because the user input is concatenated directly into the query:
 
-```
-String query = "SELECT * FROM products WHERE category = '"+ input + "'"; Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(query);
+```sql
+String query = "SELECT * FROM products WHERE category = '"+ input + "'"; 
+Statement statement = connection.createStatement(); 
+ResultSet resultSet = statement.executeQuery(query);
 ```
 
 You can rewrite this code in a way that prevents the user input from interfering with the query structure:
 
-```
-PreparedStatement statement = connection.prepareStatement("SELECT * FROM products WHERE category = ?"); statement.setString(1, input); ResultSet resultSet = statement.executeQuery();
+```sql
+PreparedStatement statement = connection.prepareStatement("SELECT * FROM products WHERE category = ?"); statement.setString(1, input); 
+ResultSet resultSet = statement.executeQuery();
 ```
 
 You can use parameterized queries for any situation where untrusted input appears as data within the query, including the `WHERE` clause and values in an `INSERT` or `UPDATE` statement. They can't be used to handle untrusted input in other parts of the query, such as table or column names, or the `ORDER BY` clause. Application functionality that places untrusted data into these parts of the query needs to take a different approach, such as:

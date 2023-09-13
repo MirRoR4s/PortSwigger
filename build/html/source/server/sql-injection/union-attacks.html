@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL injection UNION attacks &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../race_conditions.html">条件竞争</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../client/xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">SQL injection UNION attacks</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/server/sql-injection/union-attacks.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="sql-injection-union-attacks">
+<h1>SQL injection UNION attacks<a class="headerlink" href="#sql-injection-union-attacks" title="Permalink to this heading"></a></h1>
+<p>When an application is vulnerable to SQL injection, and the results of the query are returned within the application’s responses, you can use the <code class="docutils literal notranslate"><span class="pre">UNION</span></code> keyword to retrieve data from other tables within the database. This is commonly known as a SQL injection UNION attack.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">UNION</span></code> keyword enables you to execute one or more additional <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> queries and append the results to the original query. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SELECT</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="n">FROM</span> <span class="n">table1</span> <span class="n">UNION</span> <span class="n">SELECT</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span> <span class="n">FROM</span> <span class="n">table2</span>
+</pre></div>
+</div>
+<p>This SQL query returns a single result set with two columns, containing values from columns <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code> in <code class="docutils literal notranslate"><span class="pre">table1</span></code> and columns <code class="docutils literal notranslate"><span class="pre">c</span></code> and <code class="docutils literal notranslate"><span class="pre">d</span></code> in <code class="docutils literal notranslate"><span class="pre">table2</span></code>.</p>
+<p>For a <code class="docutils literal notranslate"><span class="pre">UNION</span></code> query to work, two key requirements must be met:</p>
+<ul class="simple">
+<li><p>The individual queries must return the same number of columns.</p></li>
+<li><p>The data types in each column must be compatible between the individual queries.</p></li>
+</ul>
+<p>To carry out a SQL injection UNION attack, make sure that your attack meets these two requirements. This normally involves finding out:</p>
+<ul class="simple">
+<li><p>How many columns are being returned from the original query.</p></li>
+<li><p>Which columns returned from the original query are of a suitable data type to hold the results from the injected query.</p></li>
+</ul>
+<section id="determining-the-number-of-columns-required">
+<h2>Determining the number of columns required<a class="headerlink" href="#determining-the-number-of-columns-required" title="Permalink to this heading"></a></h2>
+<p>When you perform a SQL injection UNION attack, there are two effective methods to determine how many columns are being returned from the original query.</p>
+<p>One method involves injecting a series of <code class="docutils literal notranslate"><span class="pre">ORDER</span> <span class="pre">BY</span></code> clauses and incrementing the specified column index until an error occurs. For example, if the injection point is a quoted string within the <code class="docutils literal notranslate"><span class="pre">WHERE</span></code> clause of the original query, you would submit:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39; ORDER BY 1-- &#39;</span> <span class="n">ORDER</span> <span class="n">BY</span> <span class="mi">2</span><span class="o">--</span> <span class="s1">&#39; ORDER BY 3-- etc.</span>
+</pre></div>
+</div>
+<p>This series of payloads modifies the original query to order the results by different columns in the result set. The column in an <code class="docutils literal notranslate"><span class="pre">ORDER</span> <span class="pre">BY</span></code> clause can be specified by its index, so you don’t need to know the names of any columns. When the specified column index exceeds the number of actual columns in the result set, the database returns an error, such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">ORDER</span> <span class="n">BY</span> <span class="n">position</span> <span class="n">number</span> <span class="mi">3</span> <span class="ow">is</span> <span class="n">out</span> <span class="n">of</span> <span class="nb">range</span> <span class="n">of</span> <span class="n">the</span> <span class="n">number</span> <span class="n">of</span> <span class="n">items</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">select</span> <span class="nb">list</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>The application might actually return the database error in its HTTP response, but it may also issue a generic error response. In other cases, it may simply return no results at all. Either way, as long as you can detect some difference in the response, you can infer how many columns are being returned from the query.</p>
+<p>The second method involves submitting a series of <code class="docutils literal notranslate"><span class="pre">UNION</span> <span class="pre">SELECT</span></code> payloads specifying a different number of null values:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39; UNION SELECT NULL-- &#39;</span> <span class="n">UNION</span> <span class="n">SELECT</span> <span class="n">NULL</span><span class="p">,</span><span class="n">NULL</span><span class="o">--</span> <span class="s1">&#39; UNION SELECT NULL,NULL,NULL-- etc.</span>
+</pre></div>
+</div>
+<p>If the number of nulls does not match the number of columns, the database returns an error, such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">All</span> <span class="n">queries</span> <span class="n">combined</span> <span class="n">using</span> <span class="n">a</span> <span class="n">UNION</span><span class="p">,</span> <span class="n">INTERSECT</span> <span class="ow">or</span> <span class="n">EXCEPT</span> <span class="n">operator</span> <span class="n">must</span> <span class="n">have</span> <span class="n">an</span> <span class="n">equal</span> <span class="n">number</span> <span class="n">of</span> <span class="n">expressions</span> <span class="ow">in</span> <span class="n">their</span> <span class="n">target</span> <span class="n">lists</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>We use <code class="docutils literal notranslate"><span class="pre">NULL</span></code> as the values returned from the injected <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> query because the data types in each column must be compatible between the original and the injected queries. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> is convertible to every common data type, so it maximizes the chance that the payload will succeed when the column count is correct.</p>
+<p>As with the <code class="docutils literal notranslate"><span class="pre">ORDER</span> <span class="pre">BY</span></code> technique, the application might actually return the database error in its HTTP response, but may return a generic error or simply return no results. When the number of nulls matches the number of columns, the database returns an additional row in the result set, containing null values in each column. The effect on the HTTP response depends on the application’s code. If you are lucky, you will see some additional content within the response, such as an extra row on an HTML table. Otherwise, the null values might trigger a different error, such as a <code class="docutils literal notranslate"><span class="pre">NullPointerException</span></code>. In the worst case, the response might look the same as a response caused by an incorrect number of nulls. This would make this method ineffective.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/union-attacks/lab-determine-number-of-columns">SQL injection UNION attack, determining the number of columns returned by the query</a></p>
+<p>Solved</p>
+</section>
+<section id="database-specific-syntax">
+<h2>Database-specific syntax<a class="headerlink" href="#database-specific-syntax" title="Permalink to this heading"></a></h2>
+<p>On Oracle, every <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> query must use the <code class="docutils literal notranslate"><span class="pre">FROM</span></code> keyword and specify a valid table. There is a built-in table on Oracle called <code class="docutils literal notranslate"><span class="pre">dual</span></code> which can be used for this purpose. So the injected queries on Oracle would need to look like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39; UNION SELECT NULL FROM DUAL--</span>
+</pre></div>
+</div>
+<p>The payloads described use the double-dash comment sequence <code class="docutils literal notranslate"><span class="pre">--</span></code> to comment out the remainder of the original query following the injection point. On MySQL, the double-dash sequence must be followed by a space. Alternatively, the hash character <code class="docutils literal notranslate"><span class="pre">#</span></code> can be used to identify a comment.</p>
+<p>For more details of database-specific syntax, see the <a class="reference external" href="https://portswigger.net/web-security/sql-injection/cheat-sheet">SQL injection cheat sheet</a>.</p>
+</section>
+<section id="finding-columns-with-a-useful-data-type">
+<h2>Finding columns with a useful data type<a class="headerlink" href="#finding-columns-with-a-useful-data-type" title="Permalink to this heading"></a></h2>
+<p>A SQL injection UNION attack enables you to retrieve the results from an injected query. The interesting data that you want to retrieve is normally in string form. This means you need to find one or more columns in the original query results whose data type is, or is compatible with, string data.</p>
+<p>After you determine the number of required columns, you can probe each column to test whether it can hold string data. You can submit a series of <code class="docutils literal notranslate"><span class="pre">UNION</span> <span class="pre">SELECT</span></code> payloads that place a string value into each column in turn. For example, if the query returns four columns, you would submit:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39; UNION SELECT &#39;</span><span class="n">a</span><span class="s1">&#39;,NULL,NULL,NULL-- &#39;</span> <span class="n">UNION</span> <span class="n">SELECT</span> <span class="n">NULL</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="n">NULL</span><span class="p">,</span><span class="n">NULL</span><span class="o">--</span> <span class="s1">&#39; UNION SELECT NULL,NULL,&#39;</span><span class="n">a</span><span class="s1">&#39;,NULL-- &#39;</span> <span class="n">UNION</span> <span class="n">SELECT</span> <span class="n">NULL</span><span class="p">,</span><span class="n">NULL</span><span class="p">,</span><span class="n">NULL</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="o">--</span>
+</pre></div>
+</div>
+<p>If the column data type is not compatible with string data, the injected query will cause a database error, such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Conversion</span> <span class="n">failed</span> <span class="n">when</span> <span class="n">converting</span> <span class="n">the</span> <span class="n">varchar</span> <span class="n">value</span> <span class="s1">&#39;a&#39;</span> <span class="n">to</span> <span class="n">data</span> <span class="nb">type</span> <span class="nb">int</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>If an error does not occur, and the application’s response contains some additional content including the injected string value, then the relevant column is suitable for retrieving string data.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/union-attacks/lab-find-column-containing-text">SQL injection UNION attack, finding a column containing text</a></p>
+<p>Solved</p>
+</section>
+<section id="using-a-sql-injection-union-attack-to-retrieve-interesting-data">
+<h2>Using a SQL injection UNION attack to retrieve interesting data<a class="headerlink" href="#using-a-sql-injection-union-attack-to-retrieve-interesting-data" title="Permalink to this heading"></a></h2>
+<p>When you have determined the number of columns returned by the original query and found which columns can hold string data, you are in a position to retrieve interesting data.</p>
+<p>Suppose that:</p>
+<ul class="simple">
+<li><p>The original query returns two columns, both of which can hold string data.</p></li>
+<li><p>The injection point is a quoted string within the <code class="docutils literal notranslate"><span class="pre">WHERE</span></code> clause.</p></li>
+<li><p>The database contains a table called <code class="docutils literal notranslate"><span class="pre">users</span></code> with the columns <code class="docutils literal notranslate"><span class="pre">username</span></code> and <code class="docutils literal notranslate"><span class="pre">password</span></code>.</p></li>
+</ul>
+<p>In this example, you can retrieve the contents of the <code class="docutils literal notranslate"><span class="pre">users</span></code> table by submitting the input:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39; UNION SELECT username, password FROM users--</span>
+</pre></div>
+</div>
+<p>In order to perform this attack, you need to know that there is a table called <code class="docutils literal notranslate"><span class="pre">users</span></code> with two columns called <code class="docutils literal notranslate"><span class="pre">username</span></code> and <code class="docutils literal notranslate"><span class="pre">password</span></code>. Without this information, you would have to guess the names of the tables and columns. All modern databases provide ways to examine the database structure, and determine what tables and columns they contain.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/union-attacks/lab-retrieve-data-from-other-tables">SQL injection UNION attack, retrieving data from other tables</a></p>
+<p>Solved</p>
+<section id="read-more">
+<h3>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/sql-injection/examining-the-database">Examining the database in SQL injection attacks</a></p></li>
+</ul>
+</section>
+</section>
+<section id="retrieving-multiple-values-within-a-single-column">
+<h2>Retrieving multiple values within a single column<a class="headerlink" href="#retrieving-multiple-values-within-a-single-column" title="Permalink to this heading"></a></h2>
+<p>In some cases the query in the previous example may only return a single column.</p>
+<p>You can retrieve multiple values together within this single column by concatenating the values together. You can include a separator to let you distinguish the combined values. For example, on Oracle you could submit the input:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39; UNION SELECT username || &#39;</span><span class="o">~</span><span class="s1">&#39; || password FROM users--</span>
+</pre></div>
+</div>
+<p>This uses the double-pipe sequence <code class="docutils literal notranslate"><span class="pre">||</span></code> which is a string concatenation operator on Oracle. The injected query concatenates together the values of the <code class="docutils literal notranslate"><span class="pre">username</span></code> and <code class="docutils literal notranslate"><span class="pre">password</span></code> fields, separated by the <code class="docutils literal notranslate"><span class="pre">~</span></code> character.</p>
+<p>The results from the query contain all the usernames and passwords, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span> <span class="n">administrator</span><span class="o">~</span><span class="n">s3cure</span> <span class="n">wiener</span><span class="o">~</span><span class="n">peter</span> <span class="n">carlos</span><span class="o">~</span><span class="n">montoya</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>Different databases use different syntax to perform string concatenation. For more details, see the <a class="reference external" href="https://portswigger.net/web-security/sql-injection/cheat-sheet">SQL injection cheat sheet</a>.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/sql-injection/union-attacks/lab-retrieve-multiple-values-in-single-column">SQL injection UNION attack, retrieving multiple values in a single column</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
