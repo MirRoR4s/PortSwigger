@@ -13,7 +13,7 @@ PortSwigger 学习指南
    source/server/race_conditions
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: 客户端
    
    
