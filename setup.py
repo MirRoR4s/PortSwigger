@@ -23,7 +23,7 @@ extra_requirements = {
         "ipaddress",
         "wheel",
     ],
-    "docs": ["sphinx", "sphinx_rtd_theme", "pygments>=2.4.0","myst-parser"],
+    "docs": ["sphinx", "sphinx_rtd_theme", "pygments>=2.4.0", "myst-parser"],
 }
 extra_requirements["dev"] += extra_requirements["docs"]
 

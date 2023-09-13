@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bypassing SameSite cookie restrictions &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../server/race_conditions.html">条件竞争</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Bypassing SameSite cookie restrictions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/client/csrf/bypassing-samesite-restrictions.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="bypassing-samesite-cookie-restrictions">
+<h1><a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions">Bypassing SameSite cookie restrictions</a><a class="headerlink" href="#bypassing-samesite-cookie-restrictions" title="Permalink to this heading"></a></h1>
+<p>SameSite is a browser security mechanism that determines when a website’s cookies are included in requests originating from other websites. SameSite cookie restrictions provide partial protection against a variety of cross-site attacks, including CSRF, cross-site leaks, and some <a class="reference external" href="https://portswigger.net/web-security/cors">CORS</a> exploits.</p>
+<p>Since 2021, Chrome applies <code class="docutils literal notranslate"><span class="pre">Lax</span></code> SameSite restrictions by default if the website that issues the cookie doesn’t explicitly set its own restriction level. This is a proposed standard, and we expect other major browsers to adopt this behavior in the future. As a result, it’s essential to have solid grasp of how these restrictions work, as well as how they can potentially be bypassed, in order to thoroughly test for cross-site attack vectors.</p>
+<p>In this section, we’ll first cover how the SameSite mechanism works and clarify some of the related terminology. We’ll then look at some of the most common ways you may be able to bypass these restrictions, enabling CSRF and other cross-site attacks on websites that may initially appear secure.</p>
+<section id="what-is-a-site-in-the-context-of-samesite-cookies">
+<h2>What is a site in the context of SameSite cookies?<a class="headerlink" href="#what-is-a-site-in-the-context-of-samesite-cookies" title="Permalink to this heading"></a></h2>
+<p>In the context of SameSite cookie restrictions, a site is defined as the top-level domain (TLD), usually something like <code class="docutils literal notranslate"><span class="pre">.com</span></code> or <code class="docutils literal notranslate"><span class="pre">.net</span></code>, plus one additional level of the domain name. This is often referred to as the TLD+1.</p>
+<p>When determining whether a request is same-site or not, the URL scheme is also taken into consideration. This means that a link from <code class="docutils literal notranslate"><span class="pre">http://app.example.com</span></code> to <code class="docutils literal notranslate"><span class="pre">https://app.example.com</span></code> is treated as cross-site by most browsers.</p>
+<p><img alt="What is the site for SameSite cookies?" src="https://portswigger.net/web-security/csrf/images/site-definition.png" /></p>
+<section id="note">
+<h3>Note<a class="headerlink" href="#note" title="Permalink to this heading"></a></h3>
+<p>You may come across the term “effective top-level domain” (eTLD). This is just a way of accounting for the reserved multipart suffixes that are treated as top-level domains in practice, such as <code class="docutils literal notranslate"><span class="pre">.co.uk</span></code>.</p>
+</section>
+</section>
+<section id="what-s-the-difference-between-a-site-and-an-origin">
+<h2>What’s the difference between a site and an origin?<a class="headerlink" href="#what-s-the-difference-between-a-site-and-an-origin" title="Permalink to this heading"></a></h2>
+<p>The difference between a site and an origin is their scope; a site encompasses multiple domain names, whereas an origin only includes one. Although they’re closely related, it’s important not to use the terms interchangeably as conflating the two can have serious security implications.</p>
+<p>Two URLs are considered to have the same origin if they share the exact same scheme, domain name, and port. Although note that the port is often inferred from the scheme.</p>
+<p><img alt="Site vs origin" src="https://portswigger.net/web-security/csrf/images/site-vs-origin.png" /></p>
+<p>As you can see from this example, the term “site” is much less specific as it only accounts for the scheme and last part of the domain name. Crucially, this means that a cross-origin request can still be same-site, but not the other way around.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Request from</strong></p></th>
+<th class="head"><p><strong>Request to</strong></p></th>
+<th class="head"><p><strong>Same-site?</strong></p></th>
+<th class="head"><p><strong>Same-origin?</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">https://example.com</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">https://example.com</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">https://app.example.com</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">https://intranet.example.com</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>No: mismatched domain name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">https://example.com</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">https://example.com:8080</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>No: mismatched port</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">https://example.com</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">https://example.co.uk</span></code></p></td>
+<td><p>No: mismatched eTLD</p></td>
+<td><p>No: mismatched domain name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">https://example.com</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">http://example.com</span></code></p></td>
+<td><p>No: mismatched scheme</p></td>
+<td><p>No: mismatched scheme</p></td>
+</tr>
+</tbody>
+</table>
+<p>This is an important distinction as it means that any vulnerability enabling arbitrary JavaScript execution can be abused to bypass site-based defenses on other domains belonging to the same site. We’ll see an example of this in one of the labs later.</p>
+</section>
+<section id="how-does-samesite-work">
+<h2>How does SameSite work?<a class="headerlink" href="#how-does-samesite-work" title="Permalink to this heading"></a></h2>
+<p>Before the SameSite mechanism was introduced, browsers sent cookies in every request to the domain that issued them, even if the request was triggered by an unrelated third-party website. SameSite works by enabling browsers and website owners to limit which cross-site requests, if any, should include specific cookies. This can help to reduce users’ exposure to CSRF attacks, which induce the victim’s browser to issue a request that triggers a harmful action on the vulnerable website. As these requests typically require a cookie associated with the victim’s authenticated session, the attack will fail if the browser doesn’t include this.</p>
+<p>All major browsers currently support the following SameSite restriction levels:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions#strict"><code class="docutils literal notranslate"><span class="pre">Strict</span></code></a></p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions#lax"><code class="docutils literal notranslate"><span class="pre">Lax</span></code></a></p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions#none"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></p></li>
+</ul>
+<p>Developers can manually configure a restriction level for each cookie they set, giving them more control over when these cookies are used. To do this, they just have to include the <code class="docutils literal notranslate"><span class="pre">SameSite</span></code> attribute in the <code class="docutils literal notranslate"><span class="pre">Set-Cookie</span></code> response header, along with their preferred value:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Set</span><span class="o">-</span><span class="n">Cookie</span><span class="p">:</span> <span class="n">session</span><span class="o">=</span><span class="mi">0</span><span class="n">F8tgdOhi9ynR1M9wa3ODa</span><span class="p">;</span> <span class="n">SameSite</span><span class="o">=</span><span class="n">Strict</span>
+</pre></div>
+</div>
+<p>Although this offers some protection against CSRF attacks, none of these restrictions provide guaranteed immunity, as we’ll demonstrate using deliberately vulnerable, interactive labs later in this section.</p>
+<section id="id1">
+<h3>Note<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p>If the website issuing the cookie doesn’t explicitly set a <code class="docutils literal notranslate"><span class="pre">SameSite</span></code> attribute, Chrome automatically applies <code class="docutils literal notranslate"><span class="pre">Lax</span></code> restrictions by default. This means that the cookie is only sent in cross-site requests that meet specific criteria, even though the developers never configured this behavior. As this is a proposed new standard, we expect other major browsers to adopt this behavior in future.</p>
+</section>
+<section id="strict">
+<h3>Strict<a class="headerlink" href="#strict" title="Permalink to this heading"></a></h3>
+<p>If a cookie is set with the <code class="docutils literal notranslate"><span class="pre">SameSite=Strict</span></code> attribute, browsers will not send it in any cross-site requests. In simple terms, this means that if the target site for the request does not match the site currently shown in the browser’s address bar, it will not include the cookie.</p>
+<p>This is recommended when setting cookies that enable the bearer to modify data or perform other sensitive actions, such as accessing specific pages that are only available to authenticated users.</p>
+<p>Although this is the most secure option, it can negatively impact the user experience in cases where cross-site functionality is desirable.</p>
+<section id="labs">
+<h4>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h4>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions#bypassing-samesite-restrictions-using-on-site-gadgets">LAB Bypassing SameSite Strict restrictions using on-site gadgets</a></p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions#bypassing-samesite-restrictions-via-vulnerable-sibling-domains">LAB Bypassing SameSite Strict restrictions via vulnerable sibling domains</a></p></li>
+</ul>
+</section>
+</section>
+<section id="lax">
+<h3>Lax<a class="headerlink" href="#lax" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Lax</span></code> SameSite restrictions mean that browsers will send the cookie in cross-site requests, but only if both of the following conditions are met:</p>
+<ul class="simple">
+<li><p>The request uses the <code class="docutils literal notranslate"><span class="pre">GET</span></code> method.</p></li>
+<li><p>The request resulted from a top-level navigation by the user, such as clicking on a link.</p></li>
+</ul>
+<p>This means that the cookie is not included in cross-site <code class="docutils literal notranslate"><span class="pre">POST</span></code> requests, for example. As <code class="docutils literal notranslate"><span class="pre">POST</span></code> requests are generally used to perform actions that modify data or state (at least according to best practice), they are much more likely to be the target of CSRF attacks.</p>
+<p>Likewise, the cookie is not included in background requests, such as those initiated by scripts, iframes, or references to images and other resources.</p>
+<section id="id2">
+<h4>Labs<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h4>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions#bypassing-samesite-lax-restrictions-using-get-requests">LAB Bypassing SameSite Lax restrictions using GET requests</a></p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions#bypassing-samesite-lax-restrictions-with-newly-issued-cookies">LAB Bypassing SameSite Lax restrictions with newly issued cookies</a></p></li>
+</ul>
+</section>
+</section>
+<section id="none">
+<h3>None<a class="headerlink" href="#none" title="Permalink to this heading"></a></h3>
+<p>If a cookie is set with the <code class="docutils literal notranslate"><span class="pre">SameSite=None</span></code> attribute, this effectively disables SameSite restrictions altogether, regardless of the browser. As a result, browsers will send this cookie in all requests to the site that issued it, even those that were triggered by completely unrelated third-party sites.</p>
+<p>With the exception of Chrome, this is the default behavior used by major browsers if no <code class="docutils literal notranslate"><span class="pre">SameSite</span></code> attribute is provided when setting the cookie.</p>
+<p>There are legitimate reasons for disabling SameSite, such as when the cookie is intended to be used from a third-party context and doesn’t grant the bearer access to any sensitive data or functionality. Tracking cookies are a typical example.</p>
+<p>If you encounter a cookie set with <code class="docutils literal notranslate"><span class="pre">SameSite=None</span></code> or with no explicit restrictions, it’s worth investigating whether it’s of any use. When the “Lax-by-default” behavior was first adopted by Chrome, this had the side-effect of breaking a lot of existing web functionality. As a quick workaround, some websites have opted to simply disable SameSite restrictions on all cookies, including potentially sensitive ones.</p>
+<p>When setting a cookie with <code class="docutils literal notranslate"><span class="pre">SameSite=None</span></code>, the website must also include the <code class="docutils literal notranslate"><span class="pre">Secure</span></code> attribute, which ensures that the cookie is only sent in encrypted messages over HTTPS. Otherwise, browsers will reject the cookie and it won’t be set.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Set</span><span class="o">-</span><span class="n">Cookie</span><span class="p">:</span> <span class="n">trackingId</span><span class="o">=</span><span class="mi">0</span><span class="n">F8tgdOhi9ynR1M9wa3ODa</span><span class="p">;</span> <span class="n">SameSite</span><span class="o">=</span><span class="kc">None</span><span class="p">;</span> <span class="n">Secure</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="bypassing-samesite-lax-restrictions-using-get-requests">
+<h2>Bypassing SameSite Lax restrictions using GET requests<a class="headerlink" href="#bypassing-samesite-lax-restrictions-using-get-requests" title="Permalink to this heading"></a></h2>
+<p>In practice, servers aren’t always fussy about whether they receive a <code class="docutils literal notranslate"><span class="pre">GET</span></code> or <code class="docutils literal notranslate"><span class="pre">POST</span></code> request to a given endpoint, even those that are expecting a form submission. If they also use <code class="docutils literal notranslate"><span class="pre">Lax</span></code> restrictions for their session cookies, either explicitly or due to the browser default, you may still be able to perform a <a class="reference external" href="https://portswigger.net/web-security/csrf">CSRF attack</a> by eliciting a <code class="docutils literal notranslate"><span class="pre">GET</span></code> request from the victim’s browser.</p>
+<p>As long as the request involves a top-level navigation, the browser will still include the victim’s session cookie. The following is one of the simplest approaches to launching such an attack:</p>
+<script>     document.location = 'https://vulnerable-website.com/account/transfer-payment?recipient=hacker&amount=1000000'; </script>
+<p>Even if an ordinary <code class="docutils literal notranslate"><span class="pre">GET</span></code> request isn’t allowed, some frameworks provide ways of overriding the method specified in the request line. For example, Symfony supports the <code class="docutils literal notranslate"><span class="pre">_method</span></code> parameter in forms, which takes precedence over the normal method for routing purposes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">form</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;https://vulnerable-website.com/account/transfer-payment&quot;</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;POST&quot;</span><span class="o">&gt;</span>    <span class="o">&lt;</span><span class="nb">input</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;hidden&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;_method&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;GET&quot;</span><span class="o">&gt;</span>    <span class="o">&lt;</span><span class="nb">input</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;hidden&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;recipient&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;hacker&quot;</span><span class="o">&gt;</span>    <span class="o">&lt;</span><span class="nb">input</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;hidden&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;amount&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;1000000&quot;</span><span class="o">&gt;</span> <span class="o">&lt;/</span><span class="n">form</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Other frameworks support a variety of similar parameters.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions/lab-samesite-lax-bypass-via-method-override">SameSite Lax bypass via method override</a></p>
+</section>
+<section id="bypassing-samesite-restrictions-using-on-site-gadgets">
+<h2>Bypassing SameSite restrictions using on-site gadgets<a class="headerlink" href="#bypassing-samesite-restrictions-using-on-site-gadgets" title="Permalink to this heading"></a></h2>
+<p>If a cookie is set with the <code class="docutils literal notranslate"><span class="pre">SameSite=Strict</span></code> attribute, browsers won’t include it in any cross-site requests. You may be able to get around this limitation if you can find a gadget that results in a secondary request within the same site.</p>
+<p>One possible gadget is a client-side redirect that dynamically constructs the redirection target using attacker-controllable input like URL parameters. For some examples, see our materials on <a class="reference external" href="https://portswigger.net/web-security/dom-based/open-redirection">DOM-based open redirection</a>.</p>
+<p>As far as browsers are concerned, these client-side redirects aren’t really redirects at all; the resulting request is just treated as an ordinary, standalone request. Most importantly, this is a same-site request and, as such, will include all cookies related to the site, regardless of any restrictions that are in place.</p>
+<p>If you can manipulate this gadget to elicit a malicious secondary request, this can enable you to bypass any SameSite cookie restrictions completely.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions/lab-samesite-strict-bypass-via-client-side-redirect">SameSite Strict bypass via client-side redirect</a></p>
+<p>Note that the equivalent attack is not possible with server-side redirects. In this case, browsers recognize that the request to follow the redirect resulted from a cross-site request initially, so they still apply the appropriate cookie restrictions.</p>
+</section>
+<section id="bypassing-samesite-restrictions-via-vulnerable-sibling-domains">
+<h2>Bypassing SameSite restrictions via vulnerable sibling domains<a class="headerlink" href="#bypassing-samesite-restrictions-via-vulnerable-sibling-domains" title="Permalink to this heading"></a></h2>
+<p>Whether you’re testing someone else’s website or trying to secure your own, it’s essential to keep in mind that a request can still be same-site even if it’s issued cross-origin.</p>
+<p>Make sure you thoroughly audit all of the available attack surface, including any sibling domains. In particular, vulnerabilities that enable you to elicit an arbitrary secondary request, such as <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting">XSS</a>, can compromise site-based defenses completely, exposing all of the site’s domains to cross-site attacks.</p>
+<p>In addition to classic CSRF, don’t forget that if the target website supports WebSockets, this functionality might be vulnerable to <a class="reference external" href="https://portswigger.net/web-security/websockets/cross-site-websocket-hijacking">cross-site WebSocket hijacking</a> (<a class="reference external" href="https://portswigger.net/web-security/websockets/cross-site-websocket-hijacking">CSWSH</a>), which is essentially just a CSRF attack targeting a WebSocket handshake. For more details, see our topic on <a class="reference external" href="https://portswigger.net/web-security/websockets">WebSocket vulnerabilities</a>.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions/lab-samesite-strict-bypass-via-sibling-domain">SameSite Strict bypass via sibling domain</a></p>
+</section>
+<section id="bypassing-samesite-lax-restrictions-with-newly-issued-cookies">
+<h2>Bypassing SameSite Lax restrictions with newly issued cookies<a class="headerlink" href="#bypassing-samesite-lax-restrictions-with-newly-issued-cookies" title="Permalink to this heading"></a></h2>
+<p>Cookies with <code class="docutils literal notranslate"><span class="pre">Lax</span></code> SameSite restrictions aren’t normally sent in any cross-site <code class="docutils literal notranslate"><span class="pre">POST</span></code> requests, but there are some exceptions.</p>
+<p>As mentioned earlier, if a website doesn’t include a <code class="docutils literal notranslate"><span class="pre">SameSite</span></code> attribute when setting a cookie, Chrome automatically applies <code class="docutils literal notranslate"><span class="pre">Lax</span></code> restrictions by default. However, to avoid breaking single sign-on (SSO) mechanisms, it doesn’t actually enforce these restrictions for the first 120 seconds on top-level <code class="docutils literal notranslate"><span class="pre">POST</span></code> requests. As a result, there is a two-minute window in which users may be susceptible to cross-site attacks.</p>
+<section id="id3">
+<h3>Note<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<p>This two-minute window does not apply to cookies that were explicitly set with the <code class="docutils literal notranslate"><span class="pre">SameSite=Lax</span></code> attribute.</p>
+<p>It’s somewhat impractical to try timing the attack to fall within this short window. On the other hand, if you can find a gadget on the site that enables you to force the victim to be issued a new session cookie, you can preemptively refresh their cookie before following up with the main attack. For example, completing an OAuth-based login flow may result in a new session each time as the OAuth service doesn’t necessarily know whether the user is still logged in to the target site.</p>
+<p>To trigger the cookie refresh without the victim having to manually log in again, you need to use a top-level navigation, which ensures that the cookies associated with their current OAuth session are included. This poses an additional challenge because you then need to redirect the user back to your site so that you can launch the CSRF attack.</p>
+<p>Alternatively, you can trigger the cookie refresh from a new tab so the browser doesn’t leave the page before you’re able to deliver the final attack. A minor snag with this approach is that browsers block popup tabs unless they’re opened via a manual interaction. For example, the following popup will be blocked by the browser by default:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">window</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;https://vulnerable-website.com/login/sso&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>To get around this, you can wrap the statement in an <code class="docutils literal notranslate"><span class="pre">onclick</span></code> event handler as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">window</span><span class="o">.</span><span class="n">onclick</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>    <span class="n">window</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;https://vulnerable-website.com/login/sso&#39;</span><span class="p">);</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>This way, the <code class="docutils literal notranslate"><span class="pre">window.open()</span></code> method is only invoked when the user clicks somewhere on the page.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions/lab-samesite-strict-bypass-via-cookie-refresh">SameSite Lax bypass via cookie refresh</a></p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

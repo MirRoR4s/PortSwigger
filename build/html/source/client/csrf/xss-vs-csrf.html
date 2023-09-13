@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XSS vs CSRF &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../server/race_conditions.html">条件竞争</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">XSS vs CSRF</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/client/csrf/xss-vs-csrf.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="xss-vs-csrf">
+<h1>XSS vs CSRF<a class="headerlink" href="#xss-vs-csrf" title="Permalink to this heading"></a></h1>
+<p>In this section, we’ll explain the differences between XSS and <a class="reference external" href="https://portswigger.net/web-security/csrf">CSRF</a>, and discuss whether CSRF tokens can help to prevent XSS attacks.</p>
+<section id="what-is-the-difference-between-xss-and-csrf">
+<h2>What is the difference between XSS and CSRF?<a class="headerlink" href="#what-is-the-difference-between-xss-and-csrf" title="Permalink to this heading"></a></h2>
+<p><a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting">Cross-site scripting</a> (or XSS) allows an attacker to execute arbitrary JavaScript within the browser of a victim user.</p>
+<p><a class="reference external" href="https://portswigger.net/web-security/csrf">Cross-site request forgery</a> (or CSRF) allows an attacker to induce a victim user to perform actions that they do not intend to.</p>
+<p>The consequences of XSS vulnerabilities are generally more serious than for CSRF vulnerabilities:</p>
+<ul class="simple">
+<li><p>CSRF often only applies to a subset of actions that a user is able to perform. Many applications implement CSRF defenses in general but overlook one or two actions that are left exposed. Conversely, a successful XSS exploit can normally induce a user to perform any action that the user is able to perform, regardless of the functionality in which the vulnerability arises.</p></li>
+<li><p>CSRF can be described as a “one-way” vulnerability, in that while an attacker can induce the victim to issue an HTTP request, they cannot retrieve the response from that request. Conversely, XSS is “two-way”, in that the attacker’s injected script can issue arbitrary requests, read the responses, and exfiltrate data to an external domain of the attacker’s choosing.</p></li>
+</ul>
+</section>
+<section id="can-csrf-tokens-prevent-xss-attacks">
+<h2>Can CSRF tokens prevent XSS attacks?<a class="headerlink" href="#can-csrf-tokens-prevent-xss-attacks" title="Permalink to this heading"></a></h2>
+<p>Some XSS attacks can indeed be prevented through effective use of CSRF tokens. Consider a simple <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/reflected">reflected XSS</a> vulnerability that can be trivially exploited like this:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/status?message=&lt;script&gt;/*+Bad+stuff+here...+*/&lt;/script&gt;
+</pre></div>
+</div>
+<p>Now, suppose that the vulnerable function includes a CSRF token:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/status?csrf-token=CIwNZNlR4XbisJF39I8yWnWX9wX4WFoz&amp;message=&lt;script&gt;/*+Bad+stuff+here...+*/&lt;/script&gt;
+</pre></div>
+</div>
+<p>Assuming that the server properly validates the CSRF token, and rejects requests without a valid token, then the token does prevent exploitation of the XSS vulnerability. The clue here is in the name: “cross-site scripting”, at least in its <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/reflected">reflected</a> form, involves a cross-site request. By preventing an attacker from forging a cross-site request, the application prevents trivial exploitation of the XSS vulnerability.</p>
+<p>Some important caveats arise here:</p>
+<ul class="simple">
+<li><p>If a reflected XSS vulnerability exists anywhere else on the site within a function that is not protected by a CSRF token, then that XSS can be exploited in the normal way.</p></li>
+<li><p>If an exploitable XSS vulnerability exists anywhere on a site, then the vulnerability can be leveraged to make a victim user perform actions even if those actions are themselves protected by CSRF tokens. In this situation, the attacker’s script can request the relevant page to obtain a valid CSRF token, and then use the token to perform the protected action.</p></li>
+<li><p>CSRF tokens do not protect against <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/stored">stored XSS</a> vulnerabilities. If a page that is protected by a CSRF token is also the output point for a stored XSS vulnerability, then that XSS vulnerability can be exploited in the usual way, and the XSS payload will execute when a user visits the page.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
