@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vulnerabilities in other authentication mechanisms &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Cross-site scripting" href="../../client/xss/cross-site-scripting.html" />
+    <link rel="prev" title="Vulnerabilities in multi-factor authentication" href="multi-factor.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../sql-injection/readme.html">SQL injection</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="readme.html">Authentication</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="authentication.html">Authentication vulnerabilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="password-based.html">Vulnerabilities in password-based login</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multi-factor.html">Vulnerabilities in multi-factor authentication</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Vulnerabilities in other authentication mechanisms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#keeping-users-logged-in">Keeping users logged in</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#lab"><strong>LAB</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1"><strong>LAB</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#resetting-user-passwords">Resetting user passwords</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sending-passwords-by-email">Sending passwords by email</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#resetting-passwords-using-a-url">Resetting passwords using a URL</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#changing-user-passwords">Changing user passwords</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../client/xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="readme.html">Authentication</a></li>
+      <li class="breadcrumb-item active">Vulnerabilities in other authentication mechanisms</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/server/authentication/other-mechanisms.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="vulnerabilities-in-other-authentication-mechanisms">
+<h1>Vulnerabilities in other authentication mechanisms<a class="headerlink" href="#vulnerabilities-in-other-authentication-mechanisms" title="Permalink to this heading"></a></h1>
+<p>In this section, we’ll look at some of the <strong>supplementary</strong> functionality that is related to authentication and demonstrate how these can be vulnerable. We’ve also created several interactive labs that you can use to put what you’ve learned into practice.</p>
+<p>In addition to the basic login functionality, most websites provide supplementary functionality to allow users to manage their account. For example, users can typically change their password or reset their password when they forget it. These mechanisms can also introduce vulnerabilities that can be exploited by an attacker.</p>
+<p>Websites usually take care to avoid well-known vulnerabilities in their login pages. But it is easy to overlook the fact that you need to take similar steps to ensure that related functionality is equally as robust. This is especially important in cases where an attacker is able to create their own account and, consequently, has easy access to study these additional pages.</p>
+<section id="keeping-users-logged-in">
+<h2>Keeping users logged in<a class="headerlink" href="#keeping-users-logged-in" title="Permalink to this heading"></a></h2>
+<p>A common feature is the option to stay logged in even after closing a browser session. This is usually a simple checkbox labeled something like “Remember me” or “Keep me logged in”.</p>
+<p>This functionality is often implemented by generating a “remember me” token of some kind, which is then stored in a persistent cookie. As possessing this cookie effectively allows you to bypass the entire login process, it is best practice for this cookie to be impractical to guess. However, some websites generate this cookie based on a predictable concatenation of static values, such as the username and a timestamp. Some even use the password as part of the cookie. This approach is particularly dangerous if an attacker is able to create their own account because they can study their own cookie and potentially deduce how it is generated. Once they work out the formula, they can try to brute-force other users’ cookies to gain access to their accounts.</p>
+<p>Some websites assume that if the cookie is encrypted in some way it will not be guessable even if it does use static values. While this may be true if done correctly, naively “encrypting” the cookie using a simple two-way encoding like Base64 offers no protection whatsoever. Even using proper encryption with a one-way hash function is not completely bulletproof. If the attacker is able to easily identify the hashing algorithm, and no salt is used, they can potentially brute-force the cookie by simply hashing their wordlists. This method can be used to bypass login attempt limits if a similar limit isn’t applied to cookie guesses.</p>
+<section id="lab">
+<h3><strong>LAB</strong><a class="headerlink" href="#lab" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://portswigger.net/web-security/authentication/other-mechanisms/lab-brute-forcing-a-stay-logged-in-cookie">Brute-forcing a stay-logged-in cookie</a></p>
+<p>Even if the attacker is not able to create their own account, they may still be able to exploit this vulnerability. Using the usual techniques, such as <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting">XSS</a>, an attacker could steal another user’s “remember me” cookie and deduce how the cookie is constructed from that. If the website was built using an open-source framework, the key details of the cookie construction may even be publicly documented.</p>
+<p>In some rare cases, it may be possible to obtain a user’s actual password in cleartext from a cookie, even if it is hashed. Hashed versions of well-known password lists are available online, so if the user’s password appears in one of these lists, decrypting the hash can occasionally be as trivial as just pasting the hash into a search engine. This demonstrates the importance of salt in effective encryption.</p>
+</section>
+<section id="id1">
+<h3><strong>LAB</strong><a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://portswigger.net/web-security/authentication/other-mechanisms/lab-offline-password-cracking">Offline password cracking</a></p>
+</section>
+</section>
+<section id="resetting-user-passwords">
+<h2>Resetting user passwords<a class="headerlink" href="#resetting-user-passwords" title="Permalink to this heading"></a></h2>
+<p>In practice, it is a given that some users will forget their password, so it is common to have a way for them to reset it. As the usual password-based authentication is obviously impossible in this scenario, websites have to rely on alternative methods to make sure that the real user is resetting their own password. For this reason, the password reset functionality is inherently dangerous and needs to be implemented securely.</p>
+<p>There are a few different ways that this feature is commonly implemented, with varying degrees of vulnerability.</p>
+<section id="sending-passwords-by-email">
+<h3>Sending passwords by email<a class="headerlink" href="#sending-passwords-by-email" title="Permalink to this heading"></a></h3>
+<p>It should go without saying that sending users their current password should never be possible if a website handles passwords securely in the first place. Instead, some websites generate a new password and send this to the user via email.</p>
+<p>Generally speaking, sending persistent passwords over insecure channels is to be avoided. In this case, the security relies on either the generated password expiring after a very short period, or the user changing their password again immediately. Otherwise, this approach is highly susceptible to man-in-the-middle attacks.</p>
+<p>Email is also generally not considered secure given that inboxes are both persistent and not really designed for secure storage of confidential information. Many users also automatically sync their inbox between multiple devices across insecure channels.</p>
+</section>
+<section id="resetting-passwords-using-a-url">
+<h3>Resetting passwords using a URL<a class="headerlink" href="#resetting-passwords-using-a-url" title="Permalink to this heading"></a></h3>
+<p>A more robust method of resetting passwords is to send a unique URL to users that takes them to a password reset page. Less secure implementations of this method use a URL with an easily guessable parameter to identify which account is being reset, for example:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>http://vulnerable-website.com/reset-password?user=victim-user
+</pre></div>
+</div>
+<p>In this example, an attacker could change the <code class="docutils literal notranslate"><span class="pre">user</span></code> parameter to refer to any username they have identified. They would then be taken straight to a page where they can potentially set a new password for this arbitrary user.</p>
+<p>A better implementation of this process is to generate a high-entropy, hard-to-guess token and create the reset URL based on that. In the best case scenario, this URL should provide no hints about which user’s password is being reset.</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>http://vulnerable-website.com/reset-password?token=a0ba0d1cb3b63d13822572fcff1a241895d893f659164d4cc550b421ebdd48a8
+</pre></div>
+</div>
+<p>When the user visits this URL, the system should check whether this token exists on the back-end and, if so, which user’s password it is supposed to reset. This token should expire after a short period of time and be destroyed immediately after the password has been reset.</p>
+<p>However, some websites fail to also validate the token again when the reset form is submitted. In this case, an attacker could simply visit the reset form from their own account, delete the token, and leverage this page to reset an arbitrary user’s password.</p>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-reset-broken-logic">Password reset broken logic</a></p>
+<p>If the URL in the reset email is generated dynamically, this may also be vulnerable to password reset poisoning. In this case, an attacker can potentially steal another user’s token and use it change their password.</p>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-reset-poisoning-via-middleware">Password reset poisoning via middleware</a></p>
+<section id="read-more">
+<h4>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h4>
+<p><a class="reference external" href="https://portswigger.net/web-security/host-header/exploiting/password-reset-poisoning">Password reset poisoning</a></p>
+</section>
+</section>
+</section>
+<section id="changing-user-passwords">
+<h2>Changing user passwords<a class="headerlink" href="#changing-user-passwords" title="Permalink to this heading"></a></h2>
+<p>Typically, changing your password involves entering your current password and then the new password twice. These pages fundamentally rely on the same process for checking that usernames and current passwords match as a normal login page does. Therefore, these pages can be vulnerable to the same techniques.</p>
+<p>Password change functionality can be particularly dangerous if it allows an attacker to access it directly without being logged in as the victim user. For example, if the username is provided in a hidden field, an attacker might be able to edit this value in the request to target arbitrary users. This can potentially be exploited to enumerate usernames and brute-force passwords.</p>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-brute-force-via-password-change">Password brute-force via password change</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="multi-factor.html" class="btn btn-neutral float-left" title="Vulnerabilities in multi-factor authentication" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../client/xss/cross-site-scripting.html" class="btn btn-neutral float-right" title="Cross-site scripting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

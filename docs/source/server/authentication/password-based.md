@@ -1,8 +1,4 @@
-###### tags: `PortSwigger`
-[TOC]
 # Vulnerabilities in password-based login
-
-
 
 > 原文地址：https://portswigger.net/web-security/authentication/password-based
 
@@ -13,8 +9,6 @@ For websites that adopt a password-based login process, users either register fo
 In this scenario, the mere fact that they know the secret password is taken as sufficient proof of the user's identity. Consequently, the security of the website would be compromised if an attacker is able to either obtain or guess the login credentials of another user.
 
 This can be achieved in a variety of ways, as we'll explore below.
-
-网站单纯根据密码对用户进行身份认证，所以如果黑客可以获得其他用户的登陆凭证，那么网站的安全性就遭到了破坏。不幸地是，黑客可以通过多种方法获得他人的登录凭证，详情参看下文。
 
 ## Brute-force attacks
 
@@ -36,7 +30,7 @@ Passwords can similarly be brute-forced, with the difficulty varying based on th
 - A mixture of lower and uppercase letters
 - At least one special character
 
-However, while high-entropy passwords are difficult for computers alone to crack, we can use a basic knowledge of human behavior to exploit the vulnerabilities that users **unwittingly**（直译无意地，此处指利用人类行为的基础信息对用户无意中引入系统的漏洞进行利用。） introduce to this system. Rather than creating a strong password with a random combination of characters, users often take a password that they can remember and try to **crowbar**（直译为撬棍，此处意指用户会采用一个他们能够记住的密码并以此为基础修改这个密码直至其满足网站的密码策略。） it into fitting the password policy. For example, if `mypassword` is not allowed, users may try something like `Mypassword1!` or `Myp4$$w0rd` instead.
+However, while high-entropy passwords are difficult for computers alone to crack, we can use a basic knowledge of human behavior to exploit the vulnerabilities that users **unwittingly**（直译无意地，此处指利用人类行为的基础信息对用户无意中引入系统的漏洞进行利用。） introduce to this system. Rather than creating a strong password with a random combination of characters, users often take a password that they can remember and try to **crowbar**（直译为撬棍，此处意指用户会采用一个他们能够记住的密码并以此为基础修改它直至满足网站的密码策略。） it into fitting the password policy. For example, if `mypassword` is not allowed, users may try something like `Mypassword1!` or `Myp4$$w0rd` instead.
 
 In cases where the policy requires users to change their passwords on a regular basis, it is also common for users to just make minor, predictable changes to their preferred password. For example, `Mypassword1!` becomes `Mypassword1?` or `Mypassword2!.`
 
@@ -79,7 +73,7 @@ While attempting to brute-force a login page, you should pay particular attentio
 
 [Username enumeration via subtly different responses](https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-subtly-different-responses)
 
-
+---
 
 ##### **实验-通过响应时间枚举用户名**
 
@@ -122,7 +116,7 @@ Account locking also fails to protect against credential stuffing attacks. This 
 
 ### User rate limiting
 
-Another way websites try to prevent brute-force attacks is through user rate limiting. In this case, making too many login requests within a short period of time causes your IP address to be blocked. Typically, the IP can only be unblocked in one of the following ways:
+Another way websites try to prevent brute-force attacks is through user rate limiting. In this case, making too many login requests within a short period of time causes your IP address to be blocked. Typically, the IP can only be **unblocked** in one of the following ways:
 
 - Automatically after a certain period of time has elapsed
 - Manually by an administrator

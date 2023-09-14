@@ -6,3 +6,6 @@ Authentication
     :caption: authentication
     
     authentication
+    password-based
+    multi-factor
+    other-mechanisms
