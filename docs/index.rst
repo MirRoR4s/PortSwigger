@@ -12,6 +12,8 @@ PortSwigger 学习指南
 
    source/server/sql-injection/readme
    source/server/authentication/readme
+   source/server/business-logic-vuln/readme
+   source/server/path-traversal/file-path-traversal
 
 .. toctree::
    :maxdepth: 1
