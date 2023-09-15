@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XML entities &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Server-side topics</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../client/xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">XML entities</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/server/xxe-injection/xml-entities.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="xml-entities">
+<h1>XML entities<a class="headerlink" href="#xml-entities" title="Permalink to this heading"></a></h1>
+<p>In this section, we’ll explain some key features of XML that are relevant to understanding <a class="reference external" href="https://portswigger.net/web-security/xxe">XXE vulnerabilities</a>.</p>
+<section id="what-is-xml">
+<h2>What is XML?<a class="headerlink" href="#what-is-xml" title="Permalink to this heading"></a></h2>
+<p>XML stands for “extensible markup language”. XML is a language designed for storing and transporting data. Like HTML, XML uses a tree-like structure of tags and data. Unlike HTML, XML does not use predefined tags, and so tags can be given names that describe the data. Earlier in the web’s history, XML was <strong>in vogue(流行的)</strong> as a data transport format (the “X” in “AJAX” stands for “XML”). But its popularity has now declined in favor of the JSON format.</p>
+</section>
+<section id="what-are-xml-entities">
+<h2>What are XML entities?<a class="headerlink" href="#what-are-xml-entities" title="Permalink to this heading"></a></h2>
+<p>XML entities are a way of representing an item of data within an XML document, instead of using the data itself. Various entities are built in to the specification of the XML language. For example, the entities <code class="docutils literal notranslate"><span class="pre">&amp;lt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&amp;gt;</span></code> represent the characters <code class="docutils literal notranslate"><span class="pre">&lt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>. These are metacharacters used to denote XML tags, and so must generally be represented using their entities when they appear within data.</p>
+</section>
+<section id="what-is-document-type-definition">
+<h2>What is document type definition?<a class="headerlink" href="#what-is-document-type-definition" title="Permalink to this heading"></a></h2>
+<p>The XML document type definition (DTD) contains declarations that can define the structure of an XML document, the types of data values it can contain, and other items. The DTD is declared within the optional <code class="docutils literal notranslate"><span class="pre">DOCTYPE</span></code> element at the start of the XML document. The DTD can be fully self-contained within the document itself (known as an “internal DTD”) or can be loaded from elsewhere (known as an “external DTD”) or can be hybrid of the two.</p>
+</section>
+<section id="what-are-xml-custom-entities">
+<h2>What are XML custom entities?<a class="headerlink" href="#what-are-xml-custom-entities" title="Permalink to this heading"></a></h2>
+<p>XML allows custom entities to be defined within the DTD. For example:</p>
+<div class="highlight-xml-dtd notranslate"><div class="highlight"><pre><span></span>&lt;!DOCTYPE foo [ &lt;!ENTITY myentity &quot;my entity value&quot; &gt; ]&gt;
+</pre></div>
+</div>
+<p>This definition means that any usage of the entity reference <code class="docutils literal notranslate"><span class="pre">&amp;myentity;</span></code> within the XML document will be replaced with the defined value: “<code class="docutils literal notranslate"><span class="pre">my</span> <span class="pre">entity</span> <span class="pre">value</span></code>”.</p>
+</section>
+<section id="what-are-xml-external-entities">
+<h2>What are XML external entities?<a class="headerlink" href="#what-are-xml-external-entities" title="Permalink to this heading"></a></h2>
+<p>XML external entities are a type of custom entity whose definition is located outside of the DTD where they are declared.</p>
+<p>The declaration of an external entity uses the <code class="docutils literal notranslate"><span class="pre">SYSTEM</span></code> keyword and must specify a URL from which the value of the entity should be loaded. For example:</p>
+<div class="highlight-xml-dtd notranslate"><div class="highlight"><pre><span></span>&lt;!DOCTYPE foo [ &lt;!ENTITY ext SYSTEM &quot;http://normal-website.com&quot; &gt; ]&gt;
+</pre></div>
+</div>
+<p>The URL can use the <code class="docutils literal notranslate"><span class="pre">file://</span></code> protocol, and so external entities can be loaded from file. For example:</p>
+<div class="highlight-xml-dtd notranslate"><div class="highlight"><pre><span></span>&lt;!DOCTYPE foo [ &lt;!ENTITY ext SYSTEM &quot;file:///path/to/file&quot; &gt; ]&gt;
+</pre></div>
+</div>
+<p>XML external entities provide the primary means by which <a class="reference external" href="https://portswigger.net/web-security/xxe">XML external entity attacks</a> arise.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

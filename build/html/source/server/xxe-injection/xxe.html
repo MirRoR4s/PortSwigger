@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XML external entity (XXE) injection &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="XML entities" href="xml-entities.html" />
+    <link rel="prev" title="xxe-injection" href="readme.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../readme.html">Server-side topics</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../sql-injection/readme.html">SQL injection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../authentication/readme.html">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../path-traversal/readme.html">Path traversal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../command-injection/readme.html">Command Injection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../business-logic-vuln/readme.html">业务逻辑漏洞</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../information-disclosure/readme.html">信息泄露</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../access-control/readme.html">Access Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../file-upload-vuln/readme.html">File Upload</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssrf/readme.html">Server Side Request Forgery</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="readme.html">xxe-injection</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">XML external entity (XXE) injection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#what-is-xml-external-entity-injection">What is XML external entity injection?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#how-do-xxe-vulnerabilities-arise">How do XXE vulnerabilities arise?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#what-are-the-types-of-xxe-attacks">What are the types of XXE attacks?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#exploiting-xxe-to-retrieve-files">Exploiting XXE to retrieve files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#exploiting-xxe-to-perform-ssrf-attacks">Exploiting XXE to perform SSRF attacks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blind-xxe-vulnerabilities">Blind XXE vulnerabilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#finding-hidden-attack-surface-for-xxe-injection">Finding hidden attack surface for XXE injection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#how-to-find-and-test-for-xxe-vulnerabilities">How to find and test for XXE vulnerabilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#how-to-prevent-xxe-vulnerabilities">How to prevent XXE vulnerabilities</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="xml-entities.html">XML entities</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../client/xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../readme.html">Server-side topics</a></li>
+          <li class="breadcrumb-item"><a href="readme.html">xxe-injection</a></li>
+      <li class="breadcrumb-item active">XML external entity (XXE) injection</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/server/xxe-injection/xxe.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="xml-external-entity-xxe-injection">
+<h1>XML external entity (XXE) injection<a class="headerlink" href="#xml-external-entity-xxe-injection" title="Permalink to this heading"></a></h1>
+<p>In this section, we’ll explain what XML external entity injection is, describe some common examples, explain how to find and exploit various kinds of XXE injection, and summarize how to prevent XXE injection attacks.</p>
+<section id="what-is-xml-external-entity-injection">
+<h2>What is XML external entity injection?<a class="headerlink" href="#what-is-xml-external-entity-injection" title="Permalink to this heading"></a></h2>
+<p>XML external entity injection (also known as XXE) is a web security vulnerability that allows an attacker to interfere with an application’s processing of XML data. It often allows an attacker to view files on the application server filesystem, and to interact with any back-end or external systems that the application itself can access.</p>
+<p>In some situations, an attacker can escalate an XXE attack to compromise the underlying server or other back-end infrastructure, by leveraging the XXE vulnerability to perform <a class="reference external" href="https://portswigger.net/web-security/ssrf">server-side request forgery</a> (SSRF) attacks.</p>
+<p><img alt="image-20230915160550865" src="../../../_images/image-20230915160550865.png" /></p>
+<section id="labs">
+<h3>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h3>
+<p>If you’re already familiar with the basic concepts behind XXE vulnerabilities and just want to practice exploiting them on some realistic, deliberately vulnerable targets, you can access all of the labs in this topic from the link below.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/all-labs#xml-external-entity-xxe-injection">View all XXE labs</a></p></li>
+</ul>
+</section>
+</section>
+<section id="how-do-xxe-vulnerabilities-arise">
+<h2>How do XXE vulnerabilities arise?<a class="headerlink" href="#how-do-xxe-vulnerabilities-arise" title="Permalink to this heading"></a></h2>
+<p>Some applications use the XML format to transmit data between the browser and the server. Applications that do this virtually always use a standard library or platform API to process the XML data on the server. XXE vulnerabilities arise because the XML specification contains various potentially dangerous features, and standard parsers support these features even if they are not normally used by the application.</p>
+<section id="read-more">
+<h3>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/xxe/xml-entities">Learn about the XML format, DTDs, and external entities</a></p></li>
+</ul>
+<p>XML external entities are a type of custom XML entity whose defined values are loaded from outside of the DTD in which they are declared. External entities are particularly interesting from a security perspective because they allow an entity to be defined based on the contents of a file path or URL.</p>
+</section>
+</section>
+<section id="what-are-the-types-of-xxe-attacks">
+<h2>What are the types of XXE attacks?<a class="headerlink" href="#what-are-the-types-of-xxe-attacks" title="Permalink to this heading"></a></h2>
+<p>There are various types of XXE attacks:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/xxe#exploiting-xxe-to-retrieve-files">Exploiting XXE to retrieve files</a>, where an external entity is defined containing the contents of a file, and returned in the application’s response.</p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/xxe#exploiting-xxe-to-perform-ssrf-attacks">Exploiting XXE to perform SSRF attacks</a>, where an external entity is defined based on a URL to a back-end system.</p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/xxe/blind#exploiting-blind-xxe-to-exfiltrate-data-out-of-band">Exploiting blind XXE exfiltrate data out-of-band</a>, where sensitive data is transmitted from the application server to a system that the attacker controls.</p></li>
+<li><p><a class="reference external" href="https://portswigger.net/web-security/xxe/blind#exploiting-blind-xxe-to-retrieve-data-via-error-messages">Exploiting blind XXE to retrieve data via error messages</a>, where the attacker can trigger a parsing error message containing sensitive data.</p></li>
+</ul>
+<p>这里的说法有点奇怪，type在中文是类型的意思，但是上面的描述似乎是在说XXE攻击的用途。</p>
+</section>
+<section id="exploiting-xxe-to-retrieve-files">
+<h2>Exploiting XXE to retrieve files<a class="headerlink" href="#exploiting-xxe-to-retrieve-files" title="Permalink to this heading"></a></h2>
+<p>To perform an XXE injection attack that retrieves an arbitrary file from the server’s filesystem, you need to modify the submitted XML in two ways:</p>
+<ul class="simple">
+<li><p>Introduce (or edit) a <code class="docutils literal notranslate"><span class="pre">DOCTYPE</span></code> element that defines an external entity containing the path to the file.</p></li>
+<li><p>Edit a data value in the XML that is returned in the application’s response, to make use of the defined external entity.</p></li>
+</ul>
+<p>For example, suppose a shopping application checks for the stock level of a product by submitting the following XML to the server:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="nt">&lt;stockCheck&gt;&lt;productId&gt;</span>381<span class="nt">&lt;/productId&gt;&lt;/stockCheck&gt;</span>
+</pre></div>
+</div>
+<p>The application performs no particular defenses against XXE attacks, so you can exploit the XXE vulnerability to retrieve the <code class="docutils literal notranslate"><span class="pre">/etc/passwd</span></code> file by submitting the following XXE payload:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="cp">&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM &quot;file:///etc/passwd&quot;&gt;</span><span class="w"> </span>]&gt;
+<span class="nt">&lt;stockCheck&gt;&lt;productId&gt;</span><span class="ni">&amp;xxe;</span><span class="nt">&lt;/productId&gt;&lt;/stockCheck&gt;</span>
+</pre></div>
+</div>
+<p>This XXE payload defines an external entity <code class="docutils literal notranslate"><span class="pre">&amp;xxe;</span></code> whose value is the contents of the <code class="docutils literal notranslate"><span class="pre">/etc/passwd</span></code> file and uses the entity within the <code class="docutils literal notranslate"><span class="pre">productId</span></code> value. This causes the application’s response to include the contents of the file:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">Invalid product ID</span><span class="o">:</span><span class="w"> </span><span class="s">root:x:0:0:root:/root:/bin/bash</span>
+<span class="na">daemon</span><span class="o">:</span><span class="s">x:1:1:daemon:/usr/sbin:/usr/sbin/nologin</span>
+<span class="na">bin</span><span class="o">:</span><span class="s">x:2:2:bin:/bin:/usr/sbin/nologin</span>
+<span class="na">...</span>
+</pre></div>
+</div>
+<section id="note">
+<h3>Note<a class="headerlink" href="#note" title="Permalink to this heading"></a></h3>
+<p>With real-world XXE vulnerabilities, there will often be a large number of data values within the submitted XML, any one of which might be used within the application’s response. To test systematically for XXE vulnerabilities, you will generally need to test each data node in the XML individually, by making use of your defined entity and seeing whether it appears within the response.</p>
+</section>
+<section id="lab">
+<h3>LAB<a class="headerlink" href="#lab" title="Permalink to this heading"></a></h3>
+<p>APPRENTICE-<a class="reference external" href="https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-retrieve-files">Exploiting XXE using external entities to retrieve files</a></p>
+<ul class="simple">
+<li><p>切记不要拼写错误关键字</p></li>
+</ul>
+<p>solved</p>
+</section>
+</section>
+<section id="exploiting-xxe-to-perform-ssrf-attacks">
+<h2>Exploiting XXE to perform SSRF attacks<a class="headerlink" href="#exploiting-xxe-to-perform-ssrf-attacks" title="Permalink to this heading"></a></h2>
+<p>Aside from retrieval of sensitive data, the other main impact of XXE attacks is that they can be used to perform server-side request forgery (SSRF). This is a potentially serious vulnerability in which the server-side application can be induced to make HTTP requests to any URL that the server can access.</p>
+<p>To exploit an XXE vulnerability to perform an <a class="reference external" href="https://portswigger.net/web-security/ssrf">SSRF attack</a>, you need to define an external XML entity using the URL that you want to target, and use the defined entity within a data value. If you can use the defined entity within a data value that is returned in the application’s response, then you will be able to view the response from the URL within the application’s response, and so gain two-way interaction with the back-end system. If not, then you will only be able to perform <a class="reference external" href="https://portswigger.net/web-security/ssrf/blind">blind SSRF</a> attacks (which can still have critical consequences).</p>
+<p>In the following XXE example, the external entity will cause the server to make a back-end HTTP request to an internal system within the organization’s infrastructure:</p>
+<div class="highlight-xml-dtd notranslate"><div class="highlight"><pre><span></span>&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM &quot;http://internal.vulnerable-website.com/&quot;&gt; ]&gt;
+</pre></div>
+</div>
+<section id="id1">
+<h3>LAB<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p>APPRENTICE-<a class="reference external" href="https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-perform-ssrf">Exploiting XXE to perform SSRF attacks</a></p>
+<p>Not solved</p>
+</section>
+</section>
+<section id="blind-xxe-vulnerabilities">
+<h2>Blind XXE vulnerabilities<a class="headerlink" href="#blind-xxe-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>Many instances of XXE vulnerabilities are blind. This means that the application does not return the values of any defined external entities in its responses, and so direct retrieval of server-side files is not possible.</p>
+<p>Blind XXE vulnerabilities can still be detected and exploited, but more advanced techniques are required. You can sometimes use out-of-band techniques to find vulnerabilities and exploit them to exfiltrate data. And you can sometimes trigger XML parsing errors that lead to disclosure of sensitive data within error messages.</p>
+<section id="id2">
+<h3>Read more<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/xxe/blind">Finding and exploiting blind XXE vulnerabilities</a></p></li>
+</ul>
+</section>
+</section>
+<section id="finding-hidden-attack-surface-for-xxe-injection">
+<h2>Finding hidden attack surface for XXE injection<a class="headerlink" href="#finding-hidden-attack-surface-for-xxe-injection" title="Permalink to this heading"></a></h2>
+<p>Attack surface for XXE injection vulnerabilities is obvious in many cases, because the application’s normal HTTP traffic includes requests that contain data in XML format. In other cases, the attack surface is less visible. However, if you look in the right places, you will find XXE attack surface in requests that do not contain any XML.</p>
+<section id="xinclude-attacks">
+<h3>XInclude attacks<a class="headerlink" href="#xinclude-attacks" title="Permalink to this heading"></a></h3>
+<p>Some applications receive client-submitted data, embed it on the server-side into an XML document, and then parse the document. An example of this occurs when client-submitted data is placed into a back-end SOAP request, which is then processed by the backend SOAP service.</p>
+<p>In this situation, you cannot carry out a classic XXE attack, because you don’t control the entire XML document and so cannot define or modify a <code class="docutils literal notranslate"><span class="pre">DOCTYPE</span></code> element. However, you might be able to use <code class="docutils literal notranslate"><span class="pre">XInclude</span></code> instead. <code class="docutils literal notranslate"><span class="pre">XInclude</span></code> is a part of the XML specification that allows an XML document to be built from sub-documents. You can place an <code class="docutils literal notranslate"><span class="pre">XInclude</span></code> attack within any data value in an XML document, so the attack can be performed in situations where you only control a single item of data that is placed into a server-side XML document.</p>
+<p>To perform an <code class="docutils literal notranslate"><span class="pre">XInclude</span></code> attack, you need to reference the <code class="docutils literal notranslate"><span class="pre">XInclude</span></code> namespace and provide the path to the file that you wish to include. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">foo</span> <span class="n">xmlns</span><span class="p">:</span><span class="n">xi</span><span class="o">=</span><span class="s2">&quot;http://www.w3.org/2001/XInclude&quot;</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">xi</span><span class="p">:</span><span class="n">include</span> <span class="n">parse</span><span class="o">=</span><span class="s2">&quot;text&quot;</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;file:///etc/passwd&quot;</span><span class="o">/&gt;&lt;/</span><span class="n">foo</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/xxe/lab-xinclude-attack">Exploiting XInclude to retrieve files</a></p>
+<p>Not solved</p>
+</section>
+<section id="xxe-attacks-via-file-upload">
+<h3>XXE attacks via file upload<a class="headerlink" href="#xxe-attacks-via-file-upload" title="Permalink to this heading"></a></h3>
+<p>Some applications allow users to upload files which are then processed server-side. Some common file formats use XML or contain XML subcomponents. Examples of XML-based formats are office document formats like DOCX and image formats like SVG.</p>
+<p>For example, an application might allow users to upload images, and process or validate these on the server after they are uploaded. Even if the application expects to receive a format like PNG or JPEG, the image processing library that is being used might support SVG images. Since the SVG format uses XML, an attacker can submit a malicious SVG image and so reach hidden attack surface for XXE vulnerabilities.</p>
+<p><strong>LAB</strong></p>
+<p>PRACTITIONER<a class="reference external" href="https://portswigger.net/web-security/xxe/lab-xxe-via-file-upload">Exploiting XXE via image file upload</a></p>
+<p>Not solved</p>
+</section>
+<section id="xxe-attacks-via-modified-content-type">
+<h3>XXE attacks via modified content type<a class="headerlink" href="#xxe-attacks-via-modified-content-type" title="Permalink to this heading"></a></h3>
+<p>Most POST requests use a default content type that is generated by HTML forms, such as <code class="docutils literal notranslate"><span class="pre">application/x-www-form-urlencoded</span></code>. Some web sites expect to receive requests in this format but will tolerate other content types, including XML.</p>
+<p>For example, if a normal request contains the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">action</span> <span class="n">HTTP</span><span class="o">/</span><span class="mf">1.0</span> <span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">x</span><span class="o">-</span><span class="n">www</span><span class="o">-</span><span class="n">form</span><span class="o">-</span><span class="n">urlencoded</span> <span class="n">Content</span><span class="o">-</span><span class="n">Length</span><span class="p">:</span> <span class="mi">7</span> <span class="n">foo</span><span class="o">=</span><span class="n">bar</span>
+</pre></div>
+</div>
+<p>Then you might be able submit the following request, with the same result:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>POST /action HTTP/1.0 Content-Type: text/xml Content-Length: 52 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;foo&gt;bar&lt;/foo&gt;
+</pre></div>
+</div>
+<p>If the application tolerates requests containing XML in the message body, and parses the body content as XML, then you can reach the hidden XXE attack surface simply by reformatting requests to use the XML format.</p>
+</section>
+</section>
+<section id="how-to-find-and-test-for-xxe-vulnerabilities">
+<h2>How to find and test for XXE vulnerabilities<a class="headerlink" href="#how-to-find-and-test-for-xxe-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>The vast majority of XXE vulnerabilities can be found quickly and reliably using Burp Suite’s <a class="reference external" href="https://portswigger.net/burp/vulnerability-scanner">web vulnerability scanner</a>.</p>
+<p>Manually testing for XXE vulnerabilities generally involves:</p>
+<ul class="simple">
+<li><p>Testing for <a class="reference external" href="https://portswigger.net/web-security/xxe#exploiting-xxe-to-retrieve-files">file retrieval</a> by defining an external entity based on a well-known operating system file and using that entity in data that is returned in the application’s response.</p></li>
+<li><p>Testing for <a class="reference external" href="https://portswigger.net/web-security/xxe/blind">blind XXE vulnerabilities</a> by defining an external entity based on a URL to a system that you control, and monitoring for interactions with that system. <a class="reference external" href="https://portswigger.net/burp/documentation/desktop/tools/collaborator">Burp Collaborator</a> is perfect for this purpose.</p></li>
+<li><p>Testing for vulnerable inclusion of user-supplied non-XML data within a server-side XML document by using an <a class="reference external" href="https://portswigger.net/web-security/xxe#xinclude-attacks">XInclude attack</a> to try to retrieve a well-known operating system file.</p></li>
+</ul>
+<section id="id3">
+<h3>Note<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<p>Keep in mind that XML is just a data transfer format. Make sure you also test any XML-based functionality for other vulnerabilities like <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting">XSS</a> and <a class="reference external" href="https://portswigger.net/web-security/sql-injection">SQL injection</a>. You may need to encode your payload using XML escape sequences to avoid breaking the syntax, but you may also be able to use this to <a class="reference external" href="https://portswigger.net/web-security/essential-skills/obfuscating-attacks-using-encodings#obfuscation-via-xml-encoding">obfuscate your attack</a> in order to bypass weak defences.</p>
+</section>
+</section>
+<section id="how-to-prevent-xxe-vulnerabilities">
+<h2>How to prevent XXE vulnerabilities<a class="headerlink" href="#how-to-prevent-xxe-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>Virtually all XXE vulnerabilities arise because the application’s XML parsing library supports potentially dangerous XML features that the application does not need or intend to use. The easiest and most effective way to prevent XXE attacks is to disable those features.</p>
+<p>Generally, it is sufficient to disable resolution of external entities and disable support for <code class="docutils literal notranslate"><span class="pre">XInclude</span></code>. This can usually be done via configuration options or by programmatically overriding default behavior. Consult the documentation for your XML parsing library or API for details about how to disable unnecessary capabilities.</p>
+<section id="id4">
+<h3>Read more<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/burp/vulnerability-scanner">Find XXE vulnerabilities using Burp Suite’s web vulnerability scanner</a></p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="readme.html" class="btn btn-neutral float-left" title="xxe-injection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="xml-entities.html" class="btn btn-neutral float-right" title="XML entities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

