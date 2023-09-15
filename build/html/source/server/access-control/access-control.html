@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Access control vulnerabilities and privilege escalation &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sql-injection/readme.html">SQL injection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authentication/readme.html">Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../business-logic-vuln/readme.html">业务逻辑漏洞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../path-traversal/file-path-traversal.html">Path traversal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Access Control</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../client/xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Access control vulnerabilities and privilege escalation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/server/access-control/access-control.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="access-control-vulnerabilities-and-privilege-escalation">
+<h1><a class="reference external" href="https://portswigger.net/web-security/access-control#what-is-access-control">Access control vulnerabilities and privilege escalation</a><a class="headerlink" href="#access-control-vulnerabilities-and-privilege-escalation" title="Permalink to this heading"></a></h1>
+<p>In this section, we describe:</p>
+<ul class="simple">
+<li><p>Privilege escalation.</p></li>
+<li><p>The types of vulnerabilities that can arise with access control.</p></li>
+<li><p>How to prevent access control vulnerabilities.</p></li>
+</ul>
+<section id="labs">
+<h2>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h2>
+<p>If you’re familiar with the basic concepts behind access control vulnerabilities and want to practice exploiting them on some realistic, deliberately vulnerable targets, you can access labs in this topic from the link below.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/all-labs#access-control-vulnerabilities">View all access control labs</a></p></li>
+</ul>
+</section>
+<section id="what-is-access-control">
+<h2>What is access control?<a class="headerlink" href="#what-is-access-control" title="Permalink to this heading"></a></h2>
+<p>Access control is the application of constraints on who or what is authorized to perform actions or access resources. In the context of web applications, access control is dependent on authentication and session management:</p>
+<ul class="simple">
+<li><p><strong>Authentication</strong> confirms that the user is who they say they are.</p></li>
+<li><p><strong>Session management</strong> identifies which subsequent HTTP requests are being made by that same user.</p></li>
+<li><p><strong>Access control</strong> determines whether the user is allowed to carry out the action that they are attempting to perform.</p></li>
+</ul>
+<p>Broken access controls are common and often present a critical security vulnerability. Design and management of access controls is a complex and dynamic problem that applies business, organizational, and legal constraints to a technical implementation. Access control design decisions have to be made by humans so the potential for errors is high.</p>
+<p><img alt="image-20230915083055722" src="../../../_images/image-20230915083055722.png" /></p>
+<section id="read-more">
+<h3>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/access-control/security-models">Access control security models</a></p></li>
+</ul>
+</section>
+<section id="vertical-access-controls">
+<h3>Vertical access controls<a class="headerlink" href="#vertical-access-controls" title="Permalink to this heading"></a></h3>
+<p>Vertical access controls are mechanisms that restrict access to sensitive functionality to specific types of users.</p>
+<p>With vertical access controls, different types of users have access to different application functions. For example, an administrator might be able to modify or delete any user’s account, while an ordinary user has no access to these actions. Vertical access controls can be more <strong>fine-grained(细粒度的)</strong> implementations of security models designed to enforce business policies such as separation of duties and least privilege.</p>
+</section>
+<section id="horizontal-access-controls">
+<h3>Horizontal access controls<a class="headerlink" href="#horizontal-access-controls" title="Permalink to this heading"></a></h3>
+<p>Horizontal access controls are mechanisms that restrict access to resources to specific users.</p>
+<p>With horizontal access controls, different users have access to a subset of resources of the same type. For example, a banking application will allow a user to view transactions and make payments from their own accounts, but not the accounts of any other user.</p>
+</section>
+<section id="context-dependent-access-controls">
+<h3>Context-dependent access controls<a class="headerlink" href="#context-dependent-access-controls" title="Permalink to this heading"></a></h3>
+<p>Context-dependent access controls restrict access to functionality and resources based upon the state of the application or the user’s interaction with it.</p>
+<p>Context-dependent access controls prevent a user performing actions in the wrong order. For example, a <strong>retail(零售)</strong> website might prevent users from modifying the contents of their shopping <strong>cart（购物车)</strong> after they have made payment.</p>
+</section>
+</section>
+<section id="examples-of-broken-access-controls">
+<h2>Examples of broken access controls<a class="headerlink" href="#examples-of-broken-access-controls" title="Permalink to this heading"></a></h2>
+<p>Broken access control vulnerabilities exist when a user can access resources or perform actions that they are not supposed to be able to.</p>
+<section id="vertical-privilege-escalation">
+<h3>Vertical privilege escalation<a class="headerlink" href="#vertical-privilege-escalation" title="Permalink to this heading"></a></h3>
+<p>If a user can gain access to functionality that they are not permitted to access then this is vertical privilege escalation. For example, if a non-administrative user can gain access to an admin page where they can delete user accounts, then this is vertical privilege escalation.</p>
+<section id="unprotected-functionality">
+<h4>Unprotected functionality<a class="headerlink" href="#unprotected-functionality" title="Permalink to this heading"></a></h4>
+<p>At its most basic, vertical privilege escalation arises where an application does not enforce any protection for sensitive functionality. For example, administrative functions might be linked from an administrator’s welcome page but not from a user’s welcome page. However, a user might be able to access the administrative functions by browsing to the relevant admin URL.</p>
+<p>For example, a website might host sensitive functionality at the following URL:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/admin
+</pre></div>
+</div>
+<p>This might be accessible by any user, not only administrative users who have a link to the functionality in their user interface. In some cases, the administrative URL might be disclosed in other locations, such as the <code class="docutils literal notranslate"><span class="pre">robots.txt</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">insecure</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">robots</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>Even if the URL isn’t disclosed anywhere, an attacker may be able to use a wordlist to brute-force the location of the sensitive functionality.</p>
+<section id="lab">
+<h5><strong>LAB</strong><a class="headerlink" href="#lab" title="Permalink to this heading"></a></h5>
+<p><a class="reference external" href="https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality">Unprotected admin functionality</a></p>
+<ol class="arabic simple">
+<li><p>根据robots.txt找出管理员页面的url</p></li>
+<li><p>访问管理员页面</p></li>
+<li><p>删除用户</p></li>
+</ol>
+<p>solved</p>
+<hr class="docutils" />
+<p>In some cases, sensitive functionality is <strong>concealed(隐藏的)</strong> by giving it a less predictable URL. This is an example of so-called “security by obscurity”. However, hiding sensitive functionality does not provide effective access control because users might discover the obfuscated URL in a number of ways.</p>
+<p>Imagine an application that hosts administrative functions at the following URL:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/administrator-panel-yb556
+</pre></div>
+</div>
+<p>This might not be directly guessable by an attacker. However, the application might still leak the URL to users. The URL might be disclosed in JavaScript that constructs the user interface based on the user’s role:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span>&lt;script&gt;
+	var isAdmin = false;
+	if (isAdmin) {
+		...
+		var adminPanelTag = document.createElement(&#39;a&#39;);
+		adminPanelTag.setAttribute(&#39;https://insecure-website.com/administrator-panel-yb556&#39;);
+		adminPanelTag.innerText = &#39;Admin panel&#39;;
+		...
+	}
+&lt;/script&gt;
+</pre></div>
+</div>
+<p>This script adds a link to the user’s UI if they are an admin user. However, the script containing the URL is visible to all users regardless of their role.</p>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality-with-unpredictable-url">Unprotected admin functionality with unpredictable URL</a></p>
+<ol class="arabic simple">
+<li><p>访问页面源代码得到管理员页面url</p></li>
+<li><p>删除用户</p></li>
+</ol>
+<p>solved</p>
+</section>
+</section>
+<section id="parameter-based-access-control-methods">
+<h4>Parameter-based access control methods<a class="headerlink" href="#parameter-based-access-control-methods" title="Permalink to this heading"></a></h4>
+<p>Some applications determine the user’s access rights or role at login, and then store this information in a user-controllable location. This could be:</p>
+<ul class="simple">
+<li><p>A hidden field.</p></li>
+<li><p>A cookie.</p></li>
+<li><p>A <strong>preset(预设的)</strong> query string parameter.</p></li>
+</ul>
+<p>The application makes access control decisions based on the submitted value. For example:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/login/home.jsp?admin=true 
+https://insecure-website.com/login/home.jsp?role=1
+</pre></div>
+</div>
+<p>This approach is insecure because a user can modify the value and access functionality they’re not authorized to, such as administrative functions.</p>
+<section id="id1">
+<h5><strong>LAB</strong><a class="headerlink" href="#id1" title="Permalink to this heading"></a></h5>
+<p><a class="reference external" href="https://portswigger.net/web-security/access-control/lab-user-role-controlled-by-request-parameter">User role controlled by request parameter</a></p>
+<ol class="arabic simple">
+<li><p>登录账户获得session</p></li>
+<li><p>修改首部中的admin字段为True，访问admin页面。</p></li>
+<li><p>修改首部中的admin字段为True，删除用户。</p></li>
+</ol>
+<p>solved</p>
+</section>
+<section id="id2">
+<h5><strong>LAB</strong><a class="headerlink" href="#id2" title="Permalink to this heading"></a></h5>
+<p><a class="reference external" href="https://portswigger.net/web-security/access-control/lab-user-role-can-be-modified-in-user-profile">User role can be modified in user profile</a></p>
+<ol class="arabic simple">
+<li><p>登录账户点击修改邮箱</p></li>
+<li><p>在发送的json数据中添加roleid=2这一项</p></li>
+<li><p>访问admin删除用户</p></li>
+</ol>
+<p>solved</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="broken-access-control-resulting-from-platform-misconfiguration">
+<h4>Broken access control resulting from platform misconfiguration<a class="headerlink" href="#broken-access-control-resulting-from-platform-misconfiguration" title="Permalink to this heading"></a></h4>
+<p>Some applications enforce access controls at the platform layer. they do this by restricting access to specific URLs and HTTP methods based on the user’s role. For example, an application might configure a rule as follows:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span>DENY:<span class="w"> </span>POST,<span class="w"> </span>/admin/deleteUser,<span class="w"> </span>managers
+</pre></div>
+</div>
+<p>This rule denies access to the <code class="docutils literal notranslate"><span class="pre">POST</span></code> method on the URL <code class="docutils literal notranslate"><span class="pre">/admin/deleteUser</span></code>, for users in the managers group. Various things can go wrong in this situation, leading to access control bypasses.</p>
+<p>Some application frameworks support various non-standard HTTP headers that can be used to override the URL in the original request, such as <code class="docutils literal notranslate"><span class="pre">X-Original-URL</span></code> and <code class="docutils literal notranslate"><span class="pre">X-Rewrite-URL</span></code>. If a website uses <strong>rigorous(严密的)</strong> front-end controls to restrict access based on the URL, but the application allows the URL to be overridden via a request header, then it might be possible to bypass the access controls using a request like the following:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>POST / HTTP/1.1
+X-Original-URL: /admin/deleteUser
+...
+</pre></div>
+</div>
+<section id="id3">
+<h5><strong>LAB</strong><a class="headerlink" href="#id3" title="Permalink to this heading"></a></h5>
+<p><a class="reference external" href="https://portswigger.net/web-security/access-control/lab-url-based-access-control-can-be-circumvented">URL-based access control can be circumvented</a></p>
+<p>这个实验的难点在于要明白X-Original-URL字段是什么意思，有什么含义。其实我也不太明白，但是问了一嘴gpt，它说到该字段用于在代理服务器或是负载均衡服务器的交互中表明原始的请求url。所以为了未授权访问/admin，就可以从该字段下手。具体地说，我们直接请求的是/，但是在该字段中请求/admin。经过测验，发现成功越权！</p>
+<p>solved</p>
+<hr class="docutils" />
+<p>An alternative attack relates to the HTTP method used in the request. The front-end controls described in the previous sections restrict access based on the URL and HTTP method. Some websites <strong>tolerate(允许)</strong> different HTTP request methods when performing an action. If an attacker can use the <code class="docutils literal notranslate"><span class="pre">GET</span></code> (or another) method to perform actions on a restricted URL, they can bypass the access control that is implemented at the platform layer.</p>
+</section>
+<section id="id4">
+<h5><strong>LAB</strong><a class="headerlink" href="#id4" title="Permalink to this heading"></a></h5>
+<p><a class="reference external" href="https://portswigger.net/web-security/access-control/lab-method-based-access-control-can-be-circumvented">Method-based access control can be circumvented</a></p>
+<p>Not solved</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="broken-access-control-resulting-from-url-matching-discrepancies">
+<h4>Broken access control resulting from URL-matching discrepancies<a class="headerlink" href="#broken-access-control-resulting-from-url-matching-discrepancies" title="Permalink to this heading"></a></h4>
+<p>Websites can vary in how strictly they match the path of an incoming request to a defined endpoint. For example, they may tolerate <strong>inconsistent(不一致的)</strong> <strong>capitalization(用大写)</strong>, so a request to <code class="docutils literal notranslate"><span class="pre">/ADMIN/DELETEUSER</span></code> may still be mapped to the <code class="docutils literal notranslate"><span class="pre">/admin/deleteUser</span></code> endpoint. If the access control mechanism is less tolerant, it may treat these as two different endpoints and fail to enforce the correct restrictions as a result.</p>
+<p>Similar <strong>discrepancies(差异)</strong> can arise if developers using the Spring framework have enabled the <code class="docutils literal notranslate"><span class="pre">useSuffixPatternMatch</span></code> option. This allows paths with an arbitrary file extension to be mapped to an equivalent endpoint with no file extension. In other words, a request to <code class="docutils literal notranslate"><span class="pre">/admin/deleteUser.anything</span></code> would still match the <code class="docutils literal notranslate"><span class="pre">/admin/deleteUser</span></code> pattern. Prior to Spring 5.3, this option is enabled by default.</p>
+<p>On other systems, you may encounter discrepancies in whether <code class="docutils literal notranslate"><span class="pre">/admin/deleteUser</span></code> and <code class="docutils literal notranslate"><span class="pre">/admin/deleteUser/</span></code> are treated as distinct endpoints. In this case, you may be able to bypass access controls by appending a trailing slash to the path.</p>
+</section>
+</section>
+<section id="horizontal-privilege-escalation">
+<h3>Horizontal privilege escalation<a class="headerlink" href="#horizontal-privilege-escalation" title="Permalink to this heading"></a></h3>
+<p>Horizontal privilege escalation occurs if a user is able to gain access to resources belonging to another user, instead of their own resources of that type. For example, if an employee can access the records of other employees as well as their own, then this is horizontal privilege escalation.</p>
+<p>Horizontal privilege escalation attacks may use similar types of exploit methods to vertical privilege escalation. For example, a user might access their own account page using the following URL:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/myaccount?id=123
+</pre></div>
+</div>
+<p>If an attacker modifies the <code class="docutils literal notranslate"><span class="pre">id</span></code> parameter value to that of another user, they might gain access to another user’s account page, and the associated data and functions.</p>
+<section id="note">
+<h4>Note<a class="headerlink" href="#note" title="Permalink to this heading"></a></h4>
+<p>This is an example of an insecure direct object reference (IDOR) vulnerability. This type of vulnerability arises where user-controller parameter values are used to access resources or functions directly.</p>
+</section>
+<section id="id5">
+<h4><strong>LAB</strong><a class="headerlink" href="#id5" title="Permalink to this heading"></a></h4>
+<p><a class="reference external" href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter">User ID controlled by request parameter </a></p>
+<ol class="arabic simple">
+<li><p>查看id处水平越权拿到carlos的key</p></li>
+<li><p>提交</p></li>
+</ol>
+<p>solved</p>
+<hr class="docutils" />
+<p>In some applications, the exploitable parameter does not have a predictable value. For example, instead of an incrementing number, an application might use globally unique identifiers (GUIDs) to identify users. This may prevent an attacker from guessing or predicting another user’s identifier. However, the GUIDs belonging to other users might be disclosed elsewhere in the application where users are referenced, such as user messages or reviews.</p>
+</section>
+<section id="id6">
+<h4><strong>LAB</strong><a class="headerlink" href="#id6" title="Permalink to this heading"></a></h4>
+<p><a class="reference external" href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-unpredictable-user-ids">User ID controlled by request parameter, with unpredictable user IDs </a></p>
+<p>如何获取carlos的id？翻找了一下最后是在carlos的博客页面找到的，然后用这个id查看账户信息就可以获取key了。</p>
+<p>solved</p>
+<hr class="docutils" />
+<p>In some cases, an application does detect when the user is not permitted to access the resource, and returns a redirect to the login page. However, the response containing the redirect might still include some sensitive data belonging to the targeted user, so the attack is still successful.</p>
+</section>
+<section id="id7">
+<h4><strong>LAB</strong><a class="headerlink" href="#id7" title="Permalink to this heading"></a></h4>
+<p>APPRENTICE-<a class="reference external" href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-data-leakage-in-redirect">User ID controlled by request parameter with data leakage in redirect </a></p>
+<p>登录查看账户信息，修改id为carlos即可。尽管响应将我们重定向到/login，不过页面源码还是给出了carlos的id。</p>
+<p>solved</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="horizontal-to-vertical-privilege-escalation">
+<h3>Horizontal to vertical privilege escalation<a class="headerlink" href="#horizontal-to-vertical-privilege-escalation" title="Permalink to this heading"></a></h3>
+<p>Often, a horizontal privilege escalation attack can be turned into a vertical privilege escalation, by compromising a more privileged user. For example, a horizontal escalation might allow an attacker to reset or capture the password belonging to another user. If the attacker targets an administrative user and compromises their account, then they can gain administrative access and so perform vertical privilege escalation.</p>
+<p>An attacker might be able to gain access to another user’s account page using the parameter tampering technique already described for horizontal privilege escalation:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/myaccount?id=456
+</pre></div>
+</div>
+<p>If the target user is an application administrator, then the attacker will gain access to an administrative account page. This page might disclose the administrator’s password or provide a means of changing it, or might provide direct access to privileged functionality.</p>
+<p><strong>LAB</strong></p>
+<p>APPRENTICE-<a class="reference external" href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-password-disclosure">User ID controlled by request parameter with password disclosure</a></p>
+<p>通过水平越权可以看到管理员的密码，然后登录管理账户，最后垂直越权删除carlos。</p>
+<p>solved</p>
+</section>
+<section id="insecure-direct-object-references">
+<h3>Insecure direct object references<a class="headerlink" href="#insecure-direct-object-references" title="Permalink to this heading"></a></h3>
+<p>Insecure direct object references (IDORs) are a subcategory of access control vulnerabilities. IDORs occur if an application uses user-supplied input to access objects directly and an attacker can modify the input to obtain unauthorized access. It was popularized by its appearance in the OWASP 2007 Top Ten. It’s just one example of many implementation mistakes that can provide a means to bypass access controls.</p>
+<p><strong>LAB</strong></p>
+<p>APPRENTICE-<a class="reference external" href="https://portswigger.net/web-security/access-control/lab-insecure-direct-object-references">Insecure direct object references</a></p>
+<p>~~完全搞不清楚状况，就一个交互聊天。我试着问carlos的密码，它让我问French。~~</p>
+<p>下载聊天文件可以篡改文件名，得到1.txt的内容就可以找到密码了。我没有试着任意文件下载。</p>
+<p>solved</p>
+<section id="id8">
+<h4>Read more<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h4>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/access-control/idor">Insecure direct object references (IDOR)</a></p></li>
+</ul>
+</section>
+</section>
+<section id="access-control-vulnerabilities-in-multi-step-processes">
+<h3>Access control vulnerabilities in multi-step processes<a class="headerlink" href="#access-control-vulnerabilities-in-multi-step-processes" title="Permalink to this heading"></a></h3>
+<p>Many websites implement important functions over a series of steps. This is common when:</p>
+<ul class="simple">
+<li><p>A variety of inputs or options need to be captured.</p></li>
+<li><p>The user needs to review and confirm details before the action is performed.</p></li>
+</ul>
+<p>For example, the administrative function to update user details might involve the following steps:</p>
+<ol class="arabic simple">
+<li><p>Load the form that contains details for a specific user.</p></li>
+<li><p>Submit the changes.</p></li>
+<li><p>Review the changes and confirm.</p></li>
+</ol>
+<p>Sometimes, a website will implement rigorous access controls over some of these steps, but ignore others. Imagine a website where access controls are correctly applied to the first and second steps, but not to the third step. The website assumes that a user will only reach step 3 if they have already completed the first steps, which are properly controlled. An attacker can gain unauthorized access to the function by skipping the first two steps and directly submitting the request for the third step with the required parameters.</p>
+<section id="id9">
+<h4>LAB<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h4>
+<p>PRACTITIONER-<a class="reference external" href="https://portswigger.net/web-security/access-control/lab-multi-step-process-with-no-access-control-on-one-step">Multi-step process with no access control on one step </a></p>
+<p>又是没有头绪的一题，之前的那个lab也没弄太明白。这个session是用来标识用户身份的吧？！</p>
+<p>Not solved</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="referer-based-access-control">
+<h3>Referer-based access control<a class="headerlink" href="#referer-based-access-control" title="Permalink to this heading"></a></h3>
+<p>Some websites base access controls on the <code class="docutils literal notranslate"><span class="pre">Referer</span></code> header submitted in the HTTP request. The <code class="docutils literal notranslate"><span class="pre">Referer</span></code> header can be added to requests by browsers to indicate which page initiated a request.</p>
+<p>For example, an application robustly enforces access control over the main administrative page at <code class="docutils literal notranslate"><span class="pre">/admin</span></code>, but for sub-pages such as <code class="docutils literal notranslate"><span class="pre">/admin/deleteUser</span></code> only inspects the <code class="docutils literal notranslate"><span class="pre">Referer</span></code> header. If the <code class="docutils literal notranslate"><span class="pre">Referer</span></code> header contains the main <code class="docutils literal notranslate"><span class="pre">/admin</span></code> URL, then the request is allowed.</p>
+<p>In this case, the <code class="docutils literal notranslate"><span class="pre">Referer</span></code> header can be fully controlled by an attacker. This means that they can forge direct requests to sensitive sub-pages by supplying the required <code class="docutils literal notranslate"><span class="pre">Referer</span></code> header, and gain unauthorized access.</p>
+<section id="id10">
+<h4>LAB<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h4>
+<p><a class="reference external" href="https://portswigger.net/web-security/access-control/lab-referer-based-access-control">Referer-based access control </a></p>
+<p>稀里糊涂做出来的一个题。</p>
+<p>登录自己的账户，访问/admin-roles路由，然后伪造Referer头，最后传参即可。</p>
+<p>solved</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="location-based-access-control">
+<h3>Location-based access control<a class="headerlink" href="#location-based-access-control" title="Permalink to this heading"></a></h3>
+<p>Some websites enforce access controls based on the user’s geographical location. This can apply, for example, to banking applications or media services where state legislation or business restrictions apply. These access controls can often be circumvented by the use of web proxies, VPNs, or manipulation of client-side <strong>geolocation(定位)</strong> mechanisms.</p>
+</section>
+</section>
+<section id="how-to-prevent-access-control-vulnerabilities">
+<h2>How to prevent access control vulnerabilities<a class="headerlink" href="#how-to-prevent-access-control-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>Access control vulnerabilities can be prevented by taking a defense-in-depth approach and applying the following principles:</p>
+<ul class="simple">
+<li><p>Never rely on obfuscation alone for access control.</p></li>
+<li><p>Unless a resource is intended to be publicly accessible, deny access by default.</p></li>
+<li><p>Wherever possible, use a single application-wide mechanism for enforcing access controls.</p></li>
+<li><p>At the code level, make it mandatory for developers to declare the access that is allowed for each resource, and deny access by default.</p></li>
+<li><p>Thoroughly audit and test access controls to ensure they work as designed.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

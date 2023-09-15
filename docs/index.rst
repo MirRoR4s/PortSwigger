@@ -9,12 +9,9 @@ PortSwigger 学习指南
 .. toctree::
    :maxdepth: 1
    :caption: 服务端
+   
+   source/server/readme
 
-   source/server/sql-injection/readme
-   source/server/authentication/readme
-   source/server/business-logic-vuln/readme
-   source/server/path-traversal/file-path-traversal
-   source/server/access-control/readme
 
 .. toctree::
    :maxdepth: 1

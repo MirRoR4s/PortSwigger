@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File upload vulnerabilities &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sql-injection/readme.html">SQL injection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authentication/readme.html">Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../business-logic-vuln/readme.html">业务逻辑漏洞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../path-traversal/file-path-traversal.html">Path traversal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../access-control/readme.html">Access Control</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../client/xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">File upload vulnerabilities</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/server/file-upload-vulnerabilities/README.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="file-upload-vulnerabilities">
+<h1><a class="reference external" href="https://portswigger.net/web-security/file-upload">File upload vulnerabilities</a><a class="headerlink" href="#file-upload-vulnerabilities" title="Permalink to this heading"></a></h1>
+<p>In this section, you’ll learn how simple file upload functions can be used as a powerful vector for a number of high-severity attacks. We’ll show you how to bypass common defense mechanisms in order to upload a web shell, enabling you to take full control of a vulnerable web server. Given how common file upload functions are, knowing how to test them properly is essential knowledge.</p>
+<p><img alt="image-20230915144023732" src="../../../_images/image-20230915144023732.png" /></p>
+<section id="labs">
+<h2>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h2>
+<p>If you’re already familiar with the basic concepts behind file upload vulnerabilities and just want to get practicing, you can access all of the labs in this topic from the link below.</p>
+<p><a class="reference external" href="https://portswigger.net/web-security/all-labs#file-upload-vulnerabilities">View all file upload labs</a></p>
+</section>
+<section id="what-are-file-upload-vulnerabilities">
+<h2>What are file upload vulnerabilities?<a class="headerlink" href="#what-are-file-upload-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>File upload vulnerabilities are when a web server allows users to upload files to its filesystem without sufficiently validating things like their name, type, contents, or size. Failing to properly enforce restrictions on these could mean that even a basic image upload function can be used to upload arbitrary and potentially dangerous files instead. This could even include server-side script files that enable remote code execution.</p>
+<p>In some cases, the act of uploading the file is in itself enough to cause damage. Other attacks may involve a <strong>follow-up</strong> HTTP request for the file, typically to trigger its execution by the server.</p>
+</section>
+<section id="what-is-the-impact-of-file-upload-vulnerabilities">
+<h2>What is the impact of file upload vulnerabilities?<a class="headerlink" href="#what-is-the-impact-of-file-upload-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>The impact of file upload vulnerabilities generally depends on two key factors:</p>
+<ul class="simple">
+<li><p>Which aspect of the file the website fails to validate properly, whether that be its size, type, contents, and so on.</p></li>
+<li><p>What restrictions are imposed on the file once it has been successfully uploaded.</p></li>
+</ul>
+<p>In the worst case scenario, the file’s type isn’t validated properly, and the server configuration allows certain types of file (such as <code class="docutils literal notranslate"><span class="pre">.php</span></code> and <code class="docutils literal notranslate"><span class="pre">.jsp</span></code>) to be executed as code. In this case, an attacker could potentially upload a server-side code file that functions as a web shell, effectively granting them full control over the server.</p>
+<p>If the filename isn’t validated properly, this could allow an attacker to overwrite critical files simply by uploading a file with the same name. If the server is also vulnerable to <a class="reference external" href="https://portswigger.net/web-security/file-path-traversal">directory traversal</a>, this could mean attackers are even able to upload files to unanticipated(意料之外的) locations.</p>
+<p>Failing to make sure that the size of the file falls within expected <strong>thresholds(阈值)</strong> could also enable a form of denial-of-service (DoS) attack, whereby the attacker fills the available disk space.</p>
+</section>
+<section id="how-do-file-upload-vulnerabilities-arise">
+<h2>How do file upload vulnerabilities arise?<a class="headerlink" href="#how-do-file-upload-vulnerabilities-arise" title="Permalink to this heading"></a></h2>
+<p>Given the fairly obvious dangers, it’s rare for websites in the wild to have no restrictions whatsoever on which files users are allowed to upload. More commonly, developers implement what they believe to be robust validation that is either inherently flawed or can be easily bypassed.</p>
+<p>For example, they may attempt to <strong>blacklist</strong>（把…列入黑名单） dangerous file types, but fail to <strong>account for</strong>（考虑） parsing <strong>discrepancies</strong>（差异） when checking the file extensions. As with any blacklist, it’s also easy to accidentally omit more <strong>obscure</strong>（鲜为人知的） file types that may still be dangerous.</p>
+<p>In other cases, the website may attempt to check the file type by verifying properties that can be easily manipulated by an attacker using tools like Burp Proxy or Repeater.</p>
+<p><strong>Ultimately</strong>（最后）, even robust validation measures may be applied <strong>inconsistently</strong>（不一致地） across the network of hosts and directories that form the website, resulting in discrepancies that can be exploited.</p>
+<blockquote>
+<div><p>以上是一个长难句，慢慢分析。</p>
+<p>这里旨在说明组成网站的主机和目录可能采用了不同的验证措施，我们可以利用这些措施之间的差异做某些事情。</p>
+</div></blockquote>
+<p>Later in this topic, we’ll teach you how to <a class="reference external" href="https://portswigger.net/web-security/file-upload#exploiting-flawed-validation-of-file-uploads">exploit a number of these flaws</a> to upload a web shell for remote code execution. We’ve even created some interactive, deliberately vulnerable labs so that you can practice what you’ve learned against some realistic targets.</p>
+</section>
+<section id="how-do-web-servers-handle-requests-for-static-files">
+<h2>四. How do web servers handle requests for static files?<a class="headerlink" href="#how-do-web-servers-handle-requests-for-static-files" title="Permalink to this heading"></a></h2>
+<p>Before we look at how to exploit file upload vulnerabilities, it’s important that you have a basic understanding of how servers handle requests for static files.</p>
+<p>Historically, websites consisted almost entirely of static files that would be served to users when requested. <strong>As a result</strong>（因此）, the path of each request could be mapped 1:1 with the hierarchy of directories and files on the server’s filesystem. Nowadays, websites are increasingly dynamic and the path of a request often has no direct relationship to the filesystem at all. <strong>Nevertheless</strong>（然而）, web servers still deal with requests for some static files, including stylesheets, images, and so on.</p>
+<p>The process for handling these static files is still largely the same. At some point, the server parses the path in the request to identify the file extension. It then uses this to determine the type of the file being requested, typically by comparing it to a list of preconfigured mappings between extensions and MIME types. What happens next depends on the file type and the server’s configuration.</p>
+<ul class="simple">
+<li><p>If this file type is non-executable, such as an image or a static HTML page, the server may just send the file’s contents to the client in an HTTP response.</p></li>
+<li><p>If the file type is executable, such as a PHP file, <strong>and</strong> the server is configured to execute files of this type, it will assign variables based on the headers and parameters in the HTTP request before running the script. The resulting output may then be sent to the client in an HTTP response.</p></li>
+<li><p>If the file type is executable, but the server <strong>is not</strong> configured to execute files of this type, it will generally respond with an error. However, in some cases, the contents of the file may still be served to the client as plain text. Such misconfigurations can occasionally be exploited to leak source code and other sensitive information. You can see an <a class="reference external" href="https://portswigger.net/web-security/information-disclosure/exploiting#source-code-disclosure-via-backup-files">example</a> of this in our <a class="reference external" href="https://portswigger.net/web-security/information-disclosure">information disclosure</a> learning materials.</p></li>
+</ul>
+<blockquote>
+<div><p>Tip</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Content-Type</span></code> response header may provide clues as to what kind of file the server thinks it has served. If this header hasn’t been explicitly set by the application code, it normally contains the result of the file extension/MIME type mapping.</p>
+<p>Now that you’re familiar with the key concepts, let’s look at how you can potentially exploit these kinds of vulnerabilities.</p>
+</div></blockquote>
+</section>
+<section id="exploiting-unrestricted-file-uploads-to-deploy-a-web-shell">
+<h2>五. Exploiting unrestricted file uploads to deploy a web shell<a class="headerlink" href="#exploiting-unrestricted-file-uploads-to-deploy-a-web-shell" title="Permalink to this heading"></a></h2>
+<p>From a security perspective, the worst possible scenario is when a website allows you to upload server-side scripts, such as PHP, Java, or Python files, and is also configured to execute them as code. This makes it trivial to create your own web shell on the server.</p>
+<section id="web-shell">
+<h3>5.1 Web shell<a class="headerlink" href="#web-shell" title="Permalink to this heading"></a></h3>
+<p>A web shell is a malicious script that enables an attacker to execute arbitrary commands on a remote web server simply by sending HTTP requests to the right endpoint.</p>
+<p>If you’re able to successfully upload a web shell, you effectively have full control over the server. This means you can read and write arbitrary files, exfiltrate sensitive data, even use the server to pivot attacks against both internal infrastructure and other servers outside the network. For example, the following PHP one-liner could be used to read arbitrary files from the server’s filesystem:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nb">file_get_contents</span><span class="p">(</span><span class="s1">&#39;/path/to/target/file&#39;</span><span class="p">);</span> <span class="cp">?&gt;</span>
+</pre></div>
+</div>
+<p>Once uploaded, sending a request for this malicious file will return the target file’s contents in the response.</p>
+<p><strong>LAB</strong></p>
+<p>一个没有限制的文件上传漏洞实验。</p>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-upload/lab-file-upload-remote-code-execution-via-web-shell-upload">Remote code execution via web shell upload</a></p>
+<p>A more <strong>versatile</strong>（通用的） web shell may look something like this:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nb">system</span><span class="p">(</span><span class="nv">$_GET</span><span class="p">[</span><span class="s1">&#39;command&#39;</span><span class="p">]);</span> <span class="cp">?&gt;</span>
+</pre></div>
+</div>
+<p>This script enables you to pass an arbitrary system command via a query parameter as follows:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">GET</span> <span class="nn">/example/exploit.php?command=id</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="exploiting-flawed-validation-of-file-uploads">
+<h2>六. Exploiting flawed validation of file uploads<a class="headerlink" href="#exploiting-flawed-validation-of-file-uploads" title="Permalink to this heading"></a></h2>
+<p>In the wild, it’s unlikely that you’ll find a website that has no protection whatsoever against file upload attacks like we saw in the previous lab. But just because defenses are in place, that doesn’t mean that they’re robust.</p>
+<p>In this section, we’ll look at some ways that web servers attempt to validate and sanitize file uploads, as well as how you can exploit flaws in these mechanisms to obtain a web shell for remote code execution.</p>
+<section id="flawed-file-type-validation">
+<h3>6.1 Flawed file type validation<a class="headerlink" href="#flawed-file-type-validation" title="Permalink to this heading"></a></h3>
+<p>When submitting HTML forms, the browser typically sends the provided data in a <code class="docutils literal notranslate"><span class="pre">POST</span></code> request with the content type <code class="docutils literal notranslate"><span class="pre">application/x-www-form-url-encoded</span></code>. This is fine for sending simple text like your name, address, and so on, but is not suitable for sending large amounts of binary data, such as an entire image file or a PDF document. In this case, the content type <code class="docutils literal notranslate"><span class="pre">multipart/form-data</span></code> is the preferred approach.</p>
+<p>Consider a form containing fields for uploading an image, providing a description of it, and entering your username. Submitting such a form might result in a request that looks something like this:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/images</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">normal-website.com</span>
+<span class="na">Content-Length</span><span class="o">:</span> <span class="l">12345</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">multipart/form-data; boundary=---------------------------012345678901234567890123456</span>
+
+---------------------------012345678901234567890123456
+Content-Disposition: form-data; name=&quot;image&quot;; filename=&quot;example.jpg&quot;
+Content-Type: image/jpeg
+
+[...binary content of example.jpg...]
+
+---------------------------012345678901234567890123456
+Content-Disposition: form-data; name=&quot;description&quot;
+
+This is an interesting description of my image.
+
+---------------------------012345678901234567890123456
+Content-Disposition: form-data; name=&quot;username&quot;
+
+wiener
+---------------------------012345678901234567890123456--
+</pre></div>
+</div>
+<p>As you can see, the message body is split into separate parts for each of the form’s inputs. Each part contains a <code class="docutils literal notranslate"><span class="pre">Content-Disposition</span></code> header, which provides some basic information about the input field it relates to. These individual parts may also contain their own <code class="docutils literal notranslate"><span class="pre">Content-Type</span></code> header, which tells the server the MIME type of the data that was submitted using this input.</p>
+<p>One way that websites may attempt to validate file uploads is to check that this input-specific <code class="docutils literal notranslate"><span class="pre">Content-Type</span></code> header matches an expected MIME type. If the server is only expecting image files, for example, it may only allow types like <code class="docutils literal notranslate"><span class="pre">image/jpeg</span></code> and <code class="docutils literal notranslate"><span class="pre">image/png</span></code>. Problems can arise when the value of this header is implicitly trusted by the server. If no further validation is performed to check whether the contents of the file actually match the supposed MIME type, this defense can be easily bypassed using tools like Burp Repeater.</p>
+<p><strong>LAB</strong></p>
+<p><strong>APPRENTICE</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-content-type-restriction-bypass">Web shell upload via Content-Type restriction bypass</a></p>
+<blockquote>
+<div><p>这个文件的路径按照如下的手法就可以看到啦</p>
+</div></blockquote>
+<p><img alt="image-20230426190506087" src="../../../_images/image-20230426190506087.png" /></p>
+</section>
+<section id="preventing-file-execution-in-user-accessible-directories">
+<h3>6.2 Preventing file execution in user-accessible directories<a class="headerlink" href="#preventing-file-execution-in-user-accessible-directories" title="Permalink to this heading"></a></h3>
+<p>While it’s clearly better to prevent dangerous file types being uploaded in the first place, the second line of defense is to stop the server from executing any scripts that do slip through the net.</p>
+<p>As a precaution, servers generally only run scripts whose MIME type they have been explicitly configured to execute. Otherwise, they may just return some kind of error message or, in some cases, serve the contents of the file as plain text instead:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>GET /static/exploit.php?command=id 
+Host: normal-website.com
+
+HTTP/1.1 200 OK 
+Content-Type: text/plain 
+Content-Length: 39 
+&lt;?php echo system($_GET[&#39;command&#39;]); ?&gt;
+</pre></div>
+</div>
+<p>This behavior is potentially interesting in its own right, as it may provide a way to leak source code, but it nullifies any attempt to create a web shell.</p>
+<p>This kind of configuration often differs between directories. A directory to which user-supplied files are uploaded will likely have much stricter controls than other locations on the filesystem that are assumed to be out of reach for end users. If you can find a way to upload a script to a different directory that’s not supposed to contain user-supplied files, the server may execute your script after all.</p>
+<p><strong>Tip</strong></p>
+<p>Web servers often use the <code class="docutils literal notranslate"><span class="pre">filename</span></code> field in <code class="docutils literal notranslate"><span class="pre">multipart/form-data</span></code> requests to determine the name and location where the file should be saved.</p>
+<p><strong>LAB</strong></p>
+<p><strong>PRACTITIONER</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-path-traversal">Web shell upload via path traversal</a></p>
+<p><strong>solved</strong></p>
+<blockquote>
+<div><p>有点坑的实验，原本是希望我们上传到上一级目录去的，但是直接用../上传无效，需要部分编码成../%2f</p>
+<p>最后直接访问 /avator/test.php 即可</p>
+</div></blockquote>
+<p>You should also note that even though you may send all of your requests to the same domain name, this often points to a reverse proxy server of some kind, such as a load balancer. Your requests will often be handled by additional servers behind the scenes, which may also be configured differently.</p>
+<p><img alt="image-20230426192651111" src="../../../_images/image-20230426192651111.png" /></p>
+</section>
+<section id="insufficient-blacklisting-of-dangerous-file-types">
+<h3>6.3 Insufficient blacklisting of dangerous file types<a class="headerlink" href="#insufficient-blacklisting-of-dangerous-file-types" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>采用黑名单防御手法，常常会在黑名单中忽略一些冷门的危险文件类型，黑客可通过这些文件类型绕过黑名单上传 WebShell</p>
+</div></blockquote>
+<p>One of the more obvious ways of preventing users from uploading malicious scripts is to blacklist potentially dangerous file extensions like <code class="docutils literal notranslate"><span class="pre">.php</span></code>. The practice of blacklisting is inherently flawed as it’s difficult to explicitly block every possible file extension that could be used to execute code. Such blacklists can sometimes be bypassed by using lesser known, alternative file extensions that may still be executable, such as <code class="docutils literal notranslate"><span class="pre">.php5</span></code>, <code class="docutils literal notranslate"><span class="pre">.shtml</span></code>, and so on.</p>
+<section id="overriding-the-server-configuration">
+<h4>6.3.1 Overriding the server configuration-实验<a class="headerlink" href="#overriding-the-server-configuration" title="Permalink to this heading"></a></h4>
+<blockquote>
+<div><p>覆写服务端配置</p>
+</div></blockquote>
+<p>As we discussed in the previous section, servers typically won’t execute files unless they have been configured to do so. For example, before an Apache server will execute PHP files requested by a client, developers might have to add the following <strong>directives</strong>（指令） to their <code class="docutils literal notranslate"><span class="pre">/etc/apache2/apache2.conf</span></code> file:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>LoadModule php_module /usr/lib/apache2/modules/libphp.so 
+AddType application/x-httpd-php .php
+</pre></div>
+</div>
+<p>Many servers also allow developers to create special configuration files within individual directories in order to override or add to one or more of the global settings. for example,Apache servers will load a directory-specific configuration from a file called <code class="docutils literal notranslate"><span class="pre">.htaccess</span></code> if one is present.</p>
+<p>Similarly, developers can make directory-specific configuration on IIS servers using a <code class="docutils literal notranslate"><span class="pre">web.config</span></code> file. This might include directives such as the following, which in this case allows JSON files to be served to users:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>&lt;staticContent&gt;    
+&lt;mimeMap fileExtension=&quot;.json&quot; mimeType=&quot;application/json&quot; /&gt; 
+&lt;/staticContent&gt;
+</pre></div>
+</div>
+<p>Web servers use these kinds of configuration files when present, but you’re not normally allowed to access them using HTTP requests. However, you may occasionally find servers that fail to stop you from uploading your own malicious configuration file. In this case, even if the file extension you need is blacklisted, you may be able to trick the server into mapping an arbitrary, custom file extension to an executable MIME type.</p>
+<p><strong>LAB</strong></p>
+<p><strong>PRACTITIONER</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-extension-blacklist-bypass">Web shell upload via extension blacklist bypass</a></p>
+<p>Not solved</p>
+<blockquote>
+<div><p>需要上传两个不同的文件来解决此实验。</p>
+<p>思路如下：</p>
+<ol class="arabic simple">
+<li><p>上传 .htaccess 恶意配置文件，将 jpg 后缀解析成 php。</p></li>
+<li><p>上传 jpg 图片，解析为 php 文件执行。</p></li>
+</ol>
+<p>为什么会出现漏洞？</p>
+<p>主要在于服务器允许我们上传可以更改特定目录配置的配置文件，通过这个配置文件，我们可以令服务器将任意格式的文件以 PHP 的形式解析。</p>
+<p>如何预防？</p>
+<p>当然是加上针对上传配置文件的过滤！！！</p>
+</div></blockquote>
+</section>
+<section id="obfuscating-file-extensions">
+<h4>6.3.2 Obfuscating file extensions-实验<a class="headerlink" href="#obfuscating-file-extensions" title="Permalink to this heading"></a></h4>
+<blockquote>
+<div><p>混淆文件扩展名</p>
+<p>使用一些经典的混淆技术可能帮助我们绕过一些很详尽的黑名单！</p>
+</div></blockquote>
+<p>Even the most <strong>exhaustive</strong>（详尽的） blacklists can potentially be bypassed using classic obfuscation techniques. Let’s say the validation code is <strong>case sensitive</strong>（大小写敏感的） and fails to recognize that <code class="docutils literal notranslate"><span class="pre">exploit.pHp</span></code> is in fact a <code class="docutils literal notranslate"><span class="pre">.php</span></code> file. If the code that <strong>subsequently</strong>（随后） maps the file extension to a MIME type is <strong>not</strong> case sensitive, this <strong>discrepancy</strong>（差异） allows you to sneak malicious PHP files past validation that may eventually be executed by the server.</p>
+<p>You can also achieve similar results using the following techniques:</p>
+<ul class="simple">
+<li><p>Provide multiple extensions. Depending on the algorithm used to parse the filename, the following file may be interpreted as either a PHP file or JPG image: <code class="docutils literal notranslate"><span class="pre">exploit.php.jpg</span></code></p></li>
+<li><p>Add <strong>trailing</strong>（拖尾的） characters. Some components will strip or ignore trailing whitespaces, dots, and suchlike: <code class="docutils literal notranslate"><span class="pre">exploit.php.</span></code></p></li>
+<li><p>Try using the URL encoding (or double URL encoding) for dots, forward slashes, and backward slashes. If the value isn’t decoded when validating the file extension, but is later decoded server-side, this can also allow you to upload malicious files that would otherwise be blocked: <code class="docutils literal notranslate"><span class="pre">exploit%2Ephp</span></code></p></li>
+<li><p>Add <strong>semicolons</strong>（分号） or URL-encoded null byte characters before the file extension. If validation is written in a high-level language like PHP or Java, but the server processes the file using lower-level functions in C/C++, for example, this can cause discrepancies in what is treated as the end of the filename: <code class="docutils literal notranslate"><span class="pre">exploit.asp;.jpg</span></code> or <code class="docutils literal notranslate"><span class="pre">exploit.asp%00.jpg</span></code></p></li>
+<li><p>Try using <strong>multibyte</strong>（多字节的） unicode characters, which may be converted to null bytes and dots after unicode conversion or normalization. Sequences like <code class="docutils literal notranslate"><span class="pre">xC0</span> <span class="pre">x2E</span></code>, <code class="docutils literal notranslate"><span class="pre">xC4</span> <span class="pre">xAE</span></code> or <code class="docutils literal notranslate"><span class="pre">xC0</span> <span class="pre">xAE</span></code> may be translated to <code class="docutils literal notranslate"><span class="pre">x2E</span></code> if the filename parsed as a UTF-8 string, but then converted to ASCII characters before being used in a path.</p></li>
+</ul>
+<p>Other defenses involve stripping or replacing dangerous extensions to prevent the file from being executed. If this transformation isn’t applied recursively, you can position the prohibited string in such a way that removing it still leaves behind a valid file extension. For example, consider what happens if you strip <code class="docutils literal notranslate"><span class="pre">.php</span></code> from the following filename:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>exploit.p.phphp
+</pre></div>
+</div>
+<p>This is just a small selection of the many ways it’s possible to obfuscate file extensions.</p>
+<p><strong>LAB</strong></p>
+<p><strong>PRACTITIONER</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-obfuscated-file-extension">Web shell upload via obfuscated file extension</a></p>
+<p><strong>solved</strong></p>
+<blockquote>
+<div><p>这个实验应该采用的是白名单的机制，不过还是可以利用混淆技术来绕过。</p>
+<p>只要在上传的 PHP 文件名后面添加上 %00.jpg 即可成功绕过</p>
+<p>为什么会产生漏洞？</p>
+<p>主要是负责验证的代码和处理文件的代码之间的差异引起的。比如负责验证的代码是用高级语言写的，而处理文件的代码是用相对低级一些的语言写的，那么两者在文件名何时结束就会产生差异，我们正是利用了该差异成功地上传了 WebShell</p>
+</div></blockquote>
+</section>
+</section>
+<section id="flawed-validation-of-the-file-s-contents">
+<h3>6.4 Flawed validation of the file’s contents-实验-待定<a class="headerlink" href="#flawed-validation-of-the-file-s-contents" title="Permalink to this heading"></a></h3>
+<p>Instead of implicitly trusting the <code class="docutils literal notranslate"><span class="pre">Content-Type</span></code> specified in a request, more secure servers try to verify that the contents of the file actually match what is expected.</p>
+<p>In the case of an image upload function, the server might try to verify certain intrinsic properties of an image, such as its dimensions. If you try uploading a PHP script, for example, it won’t have any dimensions at all. Therefore, the server can deduce that it can’t possibly be an image, and reject the upload accordingly.</p>
+<p>Similarly, certain file types may always contain a specific sequence of bytes in their header or footer. These can be used like a fingerprint or signature to determine whether the contents match the expected type. For example, JPEG files always begin with the bytes <code class="docutils literal notranslate"><span class="pre">FF</span> <span class="pre">D8</span> <span class="pre">FF</span></code>.</p>
+<p>This is a much more robust way of validating the file type, but even this isn’t foolproof. Using special tools, such as ExifTool, it can be trivial to create a polyglot JPEG file containing malicious code within its metadata.</p>
+<p><strong>LAB</strong></p>
+<p><strong>PRACTITIONER</strong><a class="reference external" href="https://portswigger.net/web-security/file-upload/lab-file-upload-remote-code-execution-via-polyglot-web-shell-upload">Remote code execution via polyglot web shell upload</a></p>
+<p>Not solved</p>
+</section>
+<section id="exploiting-file-upload-race-conditions">
+<h3>6.5 Exploiting file upload race conditions<a class="headerlink" href="#exploiting-file-upload-race-conditions" title="Permalink to this heading"></a></h3>
+<p>Modern frameworks are more battle-hardened against these kinds of attacks. They generally don’t upload files directly to their intended destination on the filesystem. Instead, they take precautions like uploading to a temporary, sandboxed directory first and randomizing the name to avoid overwriting existing files. They then perform validation on this temporary file and only transfer it to its destination once it is deemed safe to do so.</p>
+<p>That said, developers sometimes implement their own processing of file uploads independently of any framework. Not only is this fairly complex to do well, it can also introduce dangerous race conditions that enable an attacker to completely bypass even the most robust validation.</p>
+<p>For example, some websites upload the file directly to the main filesystem and then remove it again if it doesn’t pass validation. This kind of behavior is typical in websites that rely on anti-virus software and the like to check for malware. This may only take a few milliseconds, but for the short time that the file exists on the server, the attacker can potentially still execute it.</p>
+<p>These vulnerabilities are often extremely subtle, making them difficult to detect during blackbox testing unless you can find a way to leak the relevant source code.</p>
+<p><strong>LAB</strong></p>
+<p><strong>EXPERT</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-race-condition">Web shell upload via race condition</a></p>
+<p>Not solved</p>
+<section id="race-conditions-in-url-based-file-uploads">
+<h4>6.5.1 Race conditions in URL-based file uploads<a class="headerlink" href="#race-conditions-in-url-based-file-uploads" title="Permalink to this heading"></a></h4>
+<p>Similar race conditions can occur in functions that allow you to upload a file by providing a URL. In this case, the server has to fetch the file over the internet and create a local copy before it can perform any validation.</p>
+<p>As the file is loaded using HTTP, developers are unable to use their framework’s built-in mechanisms for securely validating files. Instead, they may manually create their own processes for temporarily storing and validating the file, which may not be quite as secure.</p>
+<p>For example, if the file is loaded into a temporary directory with a randomized name, in theory, it should be impossible for an attacker to exploit any race conditions. If they don’t know the name of the directory, they will be unable to request the file in order to trigger its execution. On the other hand, if the randomized directory name is generated using pseudo-random functions like PHP’s <code class="docutils literal notranslate"><span class="pre">uniqid()</span></code>, it can potentially be brute-forced.</p>
+<p>To make attacks like this easier, you can try to extend the amount of time taken to process the file, thereby lengthening the window for brute-forcing the directory name. One way of doing this is by uploading a larger file. If it is processed in chunks, you can potentially take advantage of this by creating a malicious file with the payload at the start, followed by a large number of arbitrary padding bytes.</p>
+</section>
+</section>
+</section>
+<section id="exploiting-file-upload-vulnerabilities-without-remote-code-execution">
+<h2>七. Exploiting file upload vulnerabilities without remote code execution<a class="headerlink" href="#exploiting-file-upload-vulnerabilities-without-remote-code-execution" title="Permalink to this heading"></a></h2>
+<p>In the examples we’ve looked at so far, we’ve been able to upload server-side scripts for remote code execution. This is the most serious consequence of an insecure file upload function, but these vulnerabilities can still be exploited in other ways.</p>
+<section id="uploading-malicious-client-side-scripts">
+<h3>7.1 Uploading malicious client-side scripts<a class="headerlink" href="#uploading-malicious-client-side-scripts" title="Permalink to this heading"></a></h3>
+<p>Although you might not be able to execute scripts on the server, you may still be able to upload scripts for client-side attacks. For example, if you can upload HTML files or SVG images, you can potentially use <code class="docutils literal notranslate"><span class="pre">&lt;script&gt;</span></code> tags to create <a class="reference external" href="https://portswigger.net/web-security/cross-site-scripting/stored">stored XSS</a> payloads.</p>
+<p>If the uploaded file then appears on a page that is visited by other users, their browser will execute the script when it tries to render the page. Note that due to <a class="reference external" href="https://portswigger.net/web-security/cors/same-origin-policy">same-origin policy</a> restrictions, these kinds of attacks will only work if the uploaded file is served from the same origin to which you upload it.</p>
+</section>
+<section id="exploiting-vulnerabilities-in-the-parsing-of-uploaded-files">
+<h3>7.2 Exploiting vulnerabilities in the parsing of uploaded files<a class="headerlink" href="#exploiting-vulnerabilities-in-the-parsing-of-uploaded-files" title="Permalink to this heading"></a></h3>
+<p>If the uploaded file seems to be both stored and served securely, the last resort is to try exploiting vulnerabilities specific to the parsing or processing of different file formats. For example, you know that the server parses XML-based files, such as Microsoft Office <code class="docutils literal notranslate"><span class="pre">.doc</span></code> or <code class="docutils literal notranslate"><span class="pre">.xls</span></code> files, this may be a potential vector for <a class="reference external" href="https://portswigger.net/web-security/xxe">XXE injection</a> attacks.</p>
+</section>
+</section>
+<section id="uploading-files-using-put">
+<h2>八. Uploading files using PUT<a class="headerlink" href="#uploading-files-using-put" title="Permalink to this heading"></a></h2>
+<p>It’s worth noting that some web servers may be configured to support <code class="docutils literal notranslate"><span class="pre">PUT</span></code> requests. If appropriate defenses aren’t in place, this can provide an alternative means of uploading malicious files, even when an upload function isn’t available via the web interface.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>PUT /images/exploit.php HTTP/1.1 Host: vulnerable-website.com Content-Type: application/x-httpd-php Content-Length: 49 &lt;?php echo file_get_contents(&#39;/path/to/file&#39;); ?&gt;
+</pre></div>
+</div>
+<section id="tip">
+<h3>Tip<a class="headerlink" href="#tip" title="Permalink to this heading"></a></h3>
+<p>You can try sending <code class="docutils literal notranslate"><span class="pre">OPTIONS</span></code> requests to different endpoints to test for any that advertise support for the <code class="docutils literal notranslate"><span class="pre">PUT</span></code> method.</p>
+</section>
+</section>
+<section id="how-to-prevent-file-upload-vulnerabilities">
+<h2>九. How to prevent file upload vulnerabilities<a class="headerlink" href="#how-to-prevent-file-upload-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>Allowing users to upload files is commonplace and doesn’t have to be dangerous as long as you take the right precautions. In general, the most effective way to protect your own websites from these vulnerabilities is to implement all of the following practices:</p>
+<ul class="simple">
+<li><p>Check the file extension against a whitelist of permitted extensions rather than a blacklist of prohibited ones. It’s much easier to guess which extensions you might want to allow than it is to guess which ones an attacker might try to upload.</p></li>
+<li><p>Make sure the filename doesn’t contain any substrings that may be interpreted as a directory or a traversal sequence (<code class="docutils literal notranslate"><span class="pre">../</span></code>).</p></li>
+<li><p>Rename uploaded files to avoid collisions that may cause existing files to be overwritten.</p></li>
+<li><p>Do not upload files to the server’s permanent filesystem until they have been fully validated.</p></li>
+<li><p>As much as possible, use an established framework for preprocessing file uploads rather than attempting to write your own validation mechanisms.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

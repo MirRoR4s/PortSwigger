@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Path traversal &mdash; PortSwigger 0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=44496db0"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Access Control" href="../access-control/readme.html" />
+    <link rel="prev" title="Examples of business logic vulnerabilities" href="../business-logic-vuln/examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PortSwigger
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">服务端</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../sql-injection/readme.html">SQL injection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authentication/readme.html">Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../business-logic-vuln/readme.html">业务逻辑漏洞</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Path traversal</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#labs">Labs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-path-traversal">What is path traversal?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reading-arbitrary-files-via-path-traversal">Reading arbitrary files via path traversal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-obstacles-to-exploiting-path-traversal-vulnerabilities">Common obstacles to exploiting path traversal vulnerabilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#lab"><strong>LAB</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1"><strong>LAB</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2"><strong>LAB</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3"><strong>LAB</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-prevent-a-path-traversal-attack">How to prevent a path traversal attack</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#read-more">Read more</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../access-control/readme.html">Access Control</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">客户端</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../client/xss/cross-site-scripting.html">Cross-site scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/csrf/csrf.html">Cross-site request forgery (CSRF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../client/cors/cors.html">Cross-origin resource sharing (CORS)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PortSwigger</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Path traversal</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/server/path-traversal/file-path-traversal.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="path-traversal">
+<h1><a class="reference external" href="https://portswigger.net/web-security/file-path-traversal">Path traversal</a><a class="headerlink" href="#path-traversal" title="Permalink to this heading"></a></h1>
+<p>In this section, we explain:</p>
+<ul class="simple">
+<li><p>What path traversal is.</p></li>
+<li><p>How to carry out path traversal attacks and circumvent common obstacles.</p></li>
+<li><p>How to prevent path traversal vulnerabilities.</p></li>
+</ul>
+<p><img alt="image-20230914212647204" src="../../../_images/image-20230914212647204.png" /></p>
+<section id="labs">
+<h2>Labs<a class="headerlink" href="#labs" title="Permalink to this heading"></a></h2>
+<p>If you’re familiar with the basic concepts behind path traversal and want to practice exploiting them on some realistic, deliberately vulnerable targets, you can access labs in this topic from the link below.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/web-security/all-labs#path-traversal">View all path traversal labs</a></p></li>
+</ul>
+</section>
+<section id="what-is-path-traversal">
+<h2>What is path traversal?<a class="headerlink" href="#what-is-path-traversal" title="Permalink to this heading"></a></h2>
+<p>Path traversal is also known as directory traversal. These vulnerabilities enable an attacker to read arbitrary files on the server that is running an application. This might include:</p>
+<ul class="simple">
+<li><p>Application code and data.</p></li>
+<li><p>Credentials for back-end systems.</p></li>
+<li><p>Sensitive operating system files.</p></li>
+</ul>
+<p>In some cases, an attacker might be able to write to arbitrary files on the server, allowing them to modify application data or behavior, and ultimately take full control of the server. 官方给出了视频：</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">iframe</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://www.youtube.com/embed/NQwUDLMOrHo?origin=https://portswigger.net&amp;amp;rel=0&quot;</span> <span class="na">allowfullscreen</span><span class="o">=</span><span class="s">&quot;&quot;</span> <span class="na">data-pp-element-found</span><span class="o">=</span><span class="s">&quot;&quot;</span> <span class="na">style</span><span class="o">=</span><span class="s">&quot;box-sizing: border-box; position: absolute; top: 0px; left: 0px; width: 710.29px; height: 399.53px; border: 0px;&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">iframe</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="reading-arbitrary-files-via-path-traversal">
+<h2>Reading arbitrary files via path traversal<a class="headerlink" href="#reading-arbitrary-files-via-path-traversal" title="Permalink to this heading"></a></h2>
+<p>Imagine a shopping application that displays images of items for sale. This might load an image using the following HTML:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">img</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;/loadImage?filename=218.png&quot;</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">loadImage</span></code> URL takes a <code class="docutils literal notranslate"><span class="pre">filename</span></code> parameter and returns the contents of the specified file. The image files are stored on disk in the location <code class="docutils literal notranslate"><span class="pre">/var/www/images/</span></code>. To return an image, the application appends the requested filename to this base directory and uses a filesystem API to read the contents of the file. In other words, the application reads from the following file path:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>/var/www/images/218.png
+</pre></div>
+</div>
+<p>This application implements no defenses against path traversal attacks. As a result, an attacker can request the following URL to retrieve the <code class="docutils literal notranslate"><span class="pre">/etc/passwd</span></code> file from the server’s filesystem:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/loadImage?filename=../../../etc/passwd
+</pre></div>
+</div>
+<p>This causes the application to read from the following file path:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/var/www/images/../../../etc/passwd
+</pre></div>
+</div>
+<p>The sequence <code class="docutils literal notranslate"><span class="pre">../</span></code> is valid within a file path, and means to step up one level in the directory structure. The three consecutive <code class="docutils literal notranslate"><span class="pre">../</span></code> sequences step up from <code class="docutils literal notranslate"><span class="pre">/var/www/images/</span></code> to the filesystem root, and so the file that is actually read is:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/etc/passwd
+</pre></div>
+</div>
+<p>On Unix-based operating systems, this is a standard file containing details of the users that are registered on the server, but an attacker could retrieve other arbitrary files using the same technique.</p>
+<p>On Windows, both <code class="docutils literal notranslate"><span class="pre">../</span></code> and <code class="docutils literal notranslate"><span class="pre">..\</span></code> are valid directory traversal sequences. The following is an example of an equivalent attack against a Windows-based server:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>https://insecure-website.com/loadImage?filename=..\..\..\windows\win.ini
+</pre></div>
+</div>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-path-traversal/lab-simple">File path traversal, simple case</a></p>
+<p>Solved</p>
+</section>
+<hr class="docutils" />
+<section id="common-obstacles-to-exploiting-path-traversal-vulnerabilities">
+<h2>Common obstacles to exploiting path traversal vulnerabilities<a class="headerlink" href="#common-obstacles-to-exploiting-path-traversal-vulnerabilities" title="Permalink to this heading"></a></h2>
+<p>Many applications that place user input into file paths implement defenses against path traversal attacks. These can often be bypassed.</p>
+<p>If an application strips or blocks directory traversal sequences from the user-supplied filename, it might be possible to bypass the defense using a variety of techniques.</p>
+<p>You might be able to use an absolute path from the filesystem root, such as <code class="docutils literal notranslate"><span class="pre">filename=/etc/passwd</span></code>, to directly reference a file without using any traversal sequences.</p>
+<section id="lab">
+<h3><strong>LAB</strong><a class="headerlink" href="#lab" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-path-traversal/lab-absolute-path-bypass">File path traversal, traversal sequences blocked with absolute path bypass</a></p>
+<p>Solved</p>
+<p>You might be able to use nested traversal sequences, such as <code class="docutils literal notranslate"><span class="pre">....//</span></code> or <code class="docutils literal notranslate"><span class="pre">....\/</span></code>. These revert to simple traversal sequences when the inner sequence is stripped.</p>
+</section>
+<section id="id1">
+<h3><strong>LAB</strong><a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-path-traversal/lab-sequences-stripped-non-recursively">File path traversal, traversal sequences stripped non-recursively</a></p>
+<p>Solved</p>
+<p>In some contexts, such as in a URL path or the <code class="docutils literal notranslate"><span class="pre">filename</span></code> parameter of a <code class="docutils literal notranslate"><span class="pre">multipart/form-data</span></code> request, web servers may strip any directory traversal sequences before passing your input to the application. You can sometimes bypass this kind of sanitization by URL encoding, or even double URL encoding, the <code class="docutils literal notranslate"><span class="pre">../</span></code> characters. This results in <code class="docutils literal notranslate"><span class="pre">%2e%2e%2f</span></code> and <code class="docutils literal notranslate"><span class="pre">%252e%252e%252f</span></code> respectively. Various non-standard encodings, such as <code class="docutils literal notranslate"><span class="pre">..%c0%af</span></code> or <code class="docutils literal notranslate"><span class="pre">..%ef%bc%8f</span></code>, may also work.</p>
+<p>For <a class="reference external" href="https://portswigger.net/burp/pro">Burp Suite Professional</a> users, Burp Intruder provides the predefined payload list <strong>Fuzzing - path traversal</strong>. This contains some encoded path traversal sequences that you can try.</p>
+</section>
+<section id="id2">
+<h3><strong>LAB</strong><a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-path-traversal/lab-superfluous-url-decode">File path traversal, traversal sequences stripped with superfluous URL-decode</a></p>
+<p>Solved</p>
+<hr class="docutils" />
+<p>An application may require the user-supplied filename to start with the expected base folder, such as <code class="docutils literal notranslate"><span class="pre">/var/www/images</span></code>. In this case, it might be possible to include the required base folder followed by suitable traversal sequences. For example:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>filename=/var/www/images/../../../etc/passwd
+</pre></div>
+</div>
+<p><strong>LAB</strong></p>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-path-traversal/lab-validate-start-of-path">File path traversal, validation of start of path</a></p>
+<p>Solved</p>
+<hr class="docutils" />
+<p>An application may require the user-supplied filename to end with an expected file extension, such as <code class="docutils literal notranslate"><span class="pre">.png</span></code>. In this case, it might be possible to use a null byte to effectively terminate the file path before the required extension. For example:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span>filename=../../../etc/passwd%00.png
+</pre></div>
+</div>
+</section>
+<section id="id3">
+<h3><strong>LAB</strong><a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<p><a class="reference external" href="https://portswigger.net/web-security/file-path-traversal/lab-validate-file-extension-null-byte-bypass">File path traversal, validation of file extension with null byte bypass</a></p>
+<p>Solved</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="how-to-prevent-a-path-traversal-attack">
+<h2>How to prevent a path traversal attack<a class="headerlink" href="#how-to-prevent-a-path-traversal-attack" title="Permalink to this heading"></a></h2>
+<p>The most effective way to prevent path traversal vulnerabilities is to avoid passing user-supplied input to filesystem APIs altogether. Many application functions that do this can be rewritten to deliver the same behavior in a safer way.</p>
+<p>If you can’t avoid passing user-supplied input to filesystem APIs, we recommend using two layers of defense to prevent attacks:</p>
+<ul class="simple">
+<li><p>Validate the user input before processing it. Ideally, compare the user input with a whitelist of permitted values. If that isn’t possible, verify that the input contains only permitted content, such as alphanumeric characters only.</p></li>
+<li><p>After validating the supplied input, append the input to the base directory and use a platform filesystem API to <strong>canonicalize</strong>（规范化） the path. Verify that the canonicalized path starts with the expected base directory.</p></li>
+</ul>
+<p>Below is an example of some simple Java code to validate the canonical path of a file based on user input:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">File</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">File</span><span class="p">(</span><span class="n">BASE_DIRECTORY</span><span class="p">,</span><span class="w"> </span><span class="n">userInput</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">file</span><span class="p">.</span><span class="na">getCanonicalPath</span><span class="p">().</span><span class="na">startsWith</span><span class="p">(</span><span class="n">BASE_DIRECTORY</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// process file</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<section id="read-more">
+<h3>Read more<a class="headerlink" href="#read-more" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://portswigger.net/burp/vulnerability-scanner">Find directory traversal vulnerabilities using Burp Suite’s web vulnerability scanner</a></p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../business-logic-vuln/examples.html" class="btn btn-neutral float-left" title="Examples of business logic vulnerabilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../access-control/readme.html" class="btn btn-neutral float-right" title="Access Control" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, MirRoR4s.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
