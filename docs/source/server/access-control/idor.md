@@ -14,7 +14,7 @@ There are many examples of access control vulnerabilities where user-controlled 
 
 Consider a website that uses the following URL to access the customer account page, by retrieving information from the back-end database:
 
-```
+```http
 https://insecure-website.com/customer_account?customer_number=132355
 ```
 
@@ -24,14 +24,14 @@ An attacker might be able to perform horizontal and vertical privilege escalatio
 
 ### IDOR vulnerability with direct reference to static files
 
-IDOR vulnerabilities often arise when sensitive resources are located in static files on the server-side filesystem. For example, a website might save chat message transcripts to disk using an incrementing filename, and allow users to retrieve these by visiting a URL like the following:
+IDOR vulnerabilities often arise when sensitive resources are located in static files on the server-side filesystem. For example, a website might save chat message **transcripts(抄本)** to disk using an incrementing filename, and allow users to retrieve these by visiting a URL like the following:
 
-```
+```http
 https://insecure-website.com/static/12144.txt
 ```
 
 In this situation, an attacker can simply modify the filename to retrieve a transcript created by another user and potentially obtain user credentials and other sensitive data.
 
-**LAB**
+##### LAB
 
-APPRENTICE[Insecure direct object references](https://portswigger.net/web-security/access-control/lab-insecure-direct-object-references)
+APPRENTICE-[Insecure direct object references](https://portswigger.net/web-security/access-control/lab-insecure-direct-object-references)

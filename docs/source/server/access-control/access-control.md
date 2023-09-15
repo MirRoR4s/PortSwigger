@@ -325,17 +325,21 @@ For example, an application robustly enforces access control over the main admin
 
 In this case, the `Referer` header can be fully controlled by an attacker. This means that they can forge direct requests to sensitive sub-pages by supplying the required `Referer` header, and gain unauthorized access.
 
-##### **LAB**
+##### LAB
 
 [Referer-based access control ](https://portswigger.net/web-security/access-control/lab-referer-based-access-control)
 
-Not solved
+稀里糊涂做出来的一个题。
+
+登录自己的账户，访问/admin-roles路由，然后伪造Referer头，最后传参即可。
+
+solved
 
 ---
 
 ### Location-based access control
 
-Some websites enforce access controls based on the user's geographical location. This can apply, for example, to banking applications or media services where state legislation or business restrictions apply. These access controls can often be circumvented by the use of web proxies, VPNs, or manipulation of client-side geolocation mechanisms.
+Some websites enforce access controls based on the user's geographical location. This can apply, for example, to banking applications or media services where state legislation or business restrictions apply. These access controls can often be circumvented by the use of web proxies, VPNs, or manipulation of client-side **geolocation(定位)** mechanisms.
 
 ## How to prevent access control vulnerabilities
 
