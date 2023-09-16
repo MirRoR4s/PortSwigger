@@ -2,11 +2,7 @@
 description: https://portswigger.net/web-security/learning-path
 ---
 
-# PortSwigger
+将PortSwigger的所有文章汇总起来形成的epub文件，方便在电子阅读器上进行阅读。
 
-## 服务端
 
-## 客户端
-
-## 高级主题
 
