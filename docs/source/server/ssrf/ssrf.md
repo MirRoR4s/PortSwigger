@@ -151,11 +151,19 @@ The URL specification contains a number of features that are likely to be overlo
 
 EXPERT-[SSRF with whitelist-based input filter](https://portswigger.net/web-security/ssrf/lab-ssrf-with-whitelist-filter)
 
+白名单过滤，限定外部host必须是stock.weliketoshop.net，如何绕过？
+
+看了答案也有点懵逼，上面提到利用url解析差异绕过白名单。问题就在于是哪两个地方有解析差异，它们的差异是什么？搞明白这个问题我觉得再看exp才有领悟的可能。
+
+我看视频看完了，虽然我无法查看到服务器处理请求的源码，但是视频钟已给出差异的地方在那里，不过还是一知半解。
+
 Not solved
 
 #### Read more
 
-- [A new era of SSRF](https://portswigger.net/blog/top-10-web-hacking-techniques-of-2017#1)
+- [A new era of SSRF](https://portswigger.net/blog/top-10-web-hacking-techniques-of-2017#1)-对应的[paper](https://www.blackhat.com/docs/us-17/thursday/us-17-Tsai-A-New-Era-Of-SSRF-Exploiting-URL-Parser-In-Trending-Programming-Languages.pdf)
+
+- 视频演讲者是一位台湾人，所以英语不太好，国内有一篇[翻译文](https://www.anquanke.com/post/id/86527)。
 
 ### Bypassing SSRF filters via open redirection
 
@@ -177,17 +185,25 @@ http://evil-user.net
 
 You can leverage the open redirection vulnerability to bypass the URL filter, and exploit the SSRF vulnerability as follows:
 
-```
-POST /product/stock HTTP/1.0 Content-Type: application/x-www-form-urlencoded Content-Length: 118 stockApi=http://weliketoshop.net/product/nextProduct?currentProductId=6&path=http://192.168.0.68/admin
+```http
+POST /product/stock HTTP/1.0
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 118
+
+stockApi=http://weliketoshop.net/product/nextProduct?currentProductId=6&path=http://192.168.0.68/admin
 ```
 
 This SSRF exploit works because the application first validates that the supplied `stockAPI` URL is on an allowed domain, which it is. The application then requests the supplied URL, which triggers the open redirection. It follows the redirection, and makes a request to the internal URL of the attacker's choosing.
 
-**LAB**
+##### LAB
 
-PRACTITIONER[SSRF with filter bypass via open redirection vulnerability](https://portswigger.net/web-security/ssrf/lab-ssrf-filter-bypass-via-open-redirection)
+PRACTITIONER-[SSRF with filter bypass via open redirection vulnerability](https://portswigger.net/web-security/ssrf/lab-ssrf-filter-bypass-via-open-redirection)
 
-Not solved
+商品页的next product有一个path参数用于重定向，不过服务端并不会向path所指向的地方发起请求。存在ssrf的地方还是stockAPI那里，所以正确的思路是在stockapi处利用path参数进行重定向
+
+solved
+
+---
 
 ## Blind SSRF vulnerabilities
 
