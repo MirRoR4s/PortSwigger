@@ -17,8 +17,6 @@ Server Side Request Forgery
 
 
 
-https://stock.weliketoshop.net:123@localhost/admin
-
 
 
 
