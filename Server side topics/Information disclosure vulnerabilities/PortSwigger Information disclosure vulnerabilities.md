@@ -12,13 +12,16 @@ tags: PortSwigger
 # Information disclosure vulnerabilities
 
 In this section, we'll explain the basics of information disclosure vulnerabilities and describe how you can find and exploit them. We'll also offer some guidance on how you can prevent information disclosure vulnerabilities in your own websites.
-在这一小节，我们将解释信息泄露漏洞的基本概念，并描述如何发现和利用信息泄露漏洞。我们也会为你提供一些如何避免网站出现信息泄露漏洞的指南。
+
+在这一小节，我们将阐释信息泄露漏洞的基本概念，并描述如何寻找和利用信息泄露漏洞。同时，我们也会为你提供一些如何避免网站出现信息泄露漏洞的指南。
+
 ![](https://i.imgur.com/bFIXykh.png)
 
 
 Learning to find and exploit information disclosure is a vital skill for any tester. You are likely to encounter it on a regular basis and, once you know how to exploit it effectively, it can help you to improve your testing efficiency and enable you to find additional, high-severity bugs.
 
 学会发现利用信息泄露漏洞对任何测试者来说都是一个重要的技能。你可能会在一个常规的测试中遇到信息泄露。知晓如何有效地利用信息泄露漏洞能够帮助我们提升测试的效率，并可能让我们发现额外的高危漏洞。
+
 #### Labs
 
 If you're already familiar with the basic concepts behind information disclosure vulnerabilities and just want to practice exploiting them on some realistic, deliberately vulnerable targets, you can access all of the labs in this topic from the link below.
